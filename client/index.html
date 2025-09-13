@@ -3,28 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Prospector - Find Your Digital Gold</title>
-    <meta name="description" content="Digital prospecting tool for gamers. Find your next gaming treasure in the Wild West of Innovation.">
+    <title>The Prospector - Professional Content Discovery</title>
+    <meta name="description" content="Professional content discovery platform. Discover, analyze, and manage digital content with AI-powered insights.">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="The Prospector - Professional Content Discovery">
+    <meta property="og:description" content="Professional content discovery platform with AI-powered insights for discovering, analyzing, and managing digital content.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://via.placeholder.com/1200x630/3b82f6/ffffff?text=The+Prospector">
+    <meta property="og:url" content="https://theprospector.replit.app">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="The Prospector - Professional Content Discovery">
+    <meta name="twitter:description" content="Professional content discovery platform with AI-powered insights.">
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
-                        'western': ['Creepster', 'cursive'],
-                        'body': ['Lato', 'sans-serif'],
+                        'primary': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        'rustic-gold': '#d4b58e',
-                        'dark-wood': '#2d1810',
-                        'darker-wood': '#1a0e08',
+                        'primary-bg': 'hsl(220 15% 8%)',
+                        'container-bg': 'hsl(220 10% 12%)',
+                        'accent-blue': 'hsl(210 85% 65%)',
+                        'text-primary': 'hsl(0 0% 95%)',
+                        'text-secondary': 'hsl(0 0% 70%)',
+                        'success-green': 'hsl(140 60% 55%)',
+                        'warning-amber': 'hsl(35 85% 60%)',
+                        'light-bg': 'hsl(0 0% 98%)',
+                        'light-container': 'hsl(220 10% 96%)',
+                        'light-text': 'hsl(220 15% 15%)',
+                        'light-text-secondary': 'hsl(220 10% 45%)'
                     }
                 }
             }
@@ -32,23 +51,64 @@
     </script>
     
     <style>
+        :root {
+            --text-color: hsl(0 0% 95%);
+            --text-secondary: hsl(0 0% 70%);
+        }
+        
         body {
-            background: 
-                linear-gradient(rgba(45, 24, 16, 0.85), rgba(26, 14, 8, 0.85)),
-                url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23d4b58e' fill-opacity='0.05'%3E%3Cpath d='M0 0h40v40H0V0zm10 10h20v20H10V10zm5 5h10v10H15V15z'/%3E%3C/g%3E%3C/svg%3E");
-            background-attachment: fixed;
+            background: hsl(220 15% 8%);
+            color: var(--text-color);
             min-height: 100vh;
+            font-family: 'Inter', sans-serif;
         }
         
-        .wood-texture {
+        body.light {
+            background: hsl(0 0% 98%);
+            color: hsl(220 15% 15%);
+            --text-color: hsl(220 15% 15%);
+            --text-secondary: hsl(220 10% 45%);
+        }
+        
+        .premium-gradient {
             background: 
-                linear-gradient(45deg, rgba(212, 181, 142, 0.1) 0%, transparent 50%),
-                linear-gradient(-45deg, rgba(212, 181, 142, 0.05) 0%, transparent 50%);
+                linear-gradient(135deg, hsl(220 10% 12%) 0%, hsl(220 15% 8%) 100%);
         }
         
-        .gold-border {
-            border: 3px solid #d4b58e;
-            box-shadow: 0 0 20px rgba(212, 181, 142, 0.3);
+        body.light .premium-gradient {
+            background: 
+                linear-gradient(135deg, hsl(220 10% 96%) 0%, hsl(0 0% 98%) 100%);
+        }
+        
+        .professional-border {
+            border: 1px solid hsl(210 85% 65% / 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        body.light .professional-border {
+            border: 1px solid hsl(220 10% 45% / 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .content-card {
+            background: hsl(220 10% 12%);
+            border: 1px solid hsl(0 0% 70% / 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        body.light .content-card {
+            background: hsl(0 0% 100%);
+            border: 1px solid hsl(220 10% 45% / 0.2);
+        }
+        
+        .content-card:hover {
+            border-color: hsl(210 85% 65% / 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        body.light .content-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
         
         .spinner {
@@ -69,24 +129,46 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        .dotted-border {
-            border-top: 2px dotted #d4b58e;
-            border-bottom: 2px dotted #d4b58e;
+        .accent-border {
+            border-left: 4px solid hsl(210 85% 65%);
+        }
+        
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+        }
+        
+        body.light .theme-toggle {
+            background: hsl(0 0% 100%);
+            color: hsl(220 15% 15%);
+            border-color: hsl(220 10% 45% / 0.2);
+        }
+        
+        body.light .theme-toggle:hover {
+            background: hsl(210 85% 65% / 0.1);
+            border-color: hsl(210 85% 65% / 0.3);
         }
     </style>
 </head>
-<body class="font-body text-rustic-gold">
+<body class="font-primary text-text-primary">
+    <!-- Theme Toggle -->
+    <button id="themeToggle" class="theme-toggle bg-container-bg hover:bg-accent-blue/10 text-text-primary border border-text-secondary/20 hover:border-accent-blue/30 px-4 py-2 rounded-lg transition-all duration-300" data-testid="button-theme-toggle">
+        <span id="themeIcon">🌙</span>
+    </button>
     <div class="min-h-screen flex items-center justify-center p-4">
         <!-- Main Container -->
-        <div class="w-full max-w-6xl bg-dark-wood/80 backdrop-blur-sm gold-border rounded-xl wood-texture">
+        <div class="w-full max-w-6xl premium-gradient backdrop-blur-sm professional-border rounded-xl">
             <!-- Header -->
             <header class="text-center py-8 px-6">
-                <h1 class="font-western text-6xl md:text-7xl lg:text-8xl text-rustic-gold mb-4 drop-shadow-lg" data-testid="title-main">
+                <h1 class="font-primary font-bold text-5xl md:text-6xl lg:text-7xl text-text-primary mb-4 drop-shadow-lg" data-testid="title-main">
                     The Prospector
                 </h1>
-                <div class="dotted-border py-3 mx-auto max-w-md">
-                    <p class="text-xl md:text-2xl text-rustic-gold/90 font-light" data-testid="text-subtitle">
-                        Find your digital gold
+                <div class="accent-border bg-accent-blue/5 py-4 px-6 mx-auto max-w-lg rounded-lg">
+                    <p class="text-xl md:text-2xl text-text-secondary font-medium" data-testid="text-subtitle">
+                        Premium content discovery at your fingertips
                     </p>
                 </div>
             </header>
@@ -98,16 +180,16 @@
                         <input 
                             type="text" 
                             id="searchInput"
-                            placeholder="What are you prospecting for?"
-                            class="flex-1 px-6 py-4 rounded-full bg-darker-wood border-2 border-rustic-gold text-rustic-gold placeholder-rustic-gold/60 focus:outline-none focus:ring-4 focus:ring-rustic-gold/30 focus:border-rustic-gold shadow-lg transition-all duration-300 text-lg"
+                            placeholder="Discover premium content..."
+                            class="flex-1 px-6 py-4 rounded-lg bg-container-bg border border-text-secondary/20 text-text-primary placeholder-text-secondary/60 focus:outline-none focus:ring-2 focus:ring-accent-blue/50 focus:border-accent-blue shadow-lg transition-all duration-300 text-lg"
                             data-testid="input-search"
                         />
                         <button 
                             id="prospectBtn"
-                            class="px-8 py-4 bg-rustic-gold text-dark-wood font-bold rounded-full hover:bg-rustic-gold/90 focus:outline-none focus:ring-4 focus:ring-rustic-gold/30 shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg"
+                            class="px-8 py-4 bg-accent-blue text-white font-semibold rounded-lg hover:bg-accent-blue/90 focus:outline-none focus:ring-2 focus:ring-accent-blue/50 shadow-lg transition-all duration-300 transform hover:scale-105 active:scale-95 text-lg"
                             data-testid="button-prospect"
                         >
-                            Prospect!
+                            Discover
                         </button>
                     </div>
                 </div>
@@ -117,11 +199,11 @@
             <div id="loadingState" class="hidden px-6 pb-8">
                 <div class="text-center">
                     <div class="inline-flex items-center space-x-3">
-                        <svg class="spinner w-8 h-8 text-rustic-gold" fill="none" viewBox="0 0 24 24">
+                        <svg class="spinner w-8 h-8" style="color: hsl(210 85% 65%)" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        <span class="text-xl text-rustic-gold/90" data-testid="text-loading">Prospecting for gold nuggets...</span>
+                        <span class="text-xl" style="color: var(--text-secondary, hsl(0 0% 70%))" data-testid="text-loading">Discovering content...</span>
                     </div>
                 </div>
             </div>
@@ -134,22 +216,30 @@
                 
                 <!-- Empty State -->
                 <div id="emptyState" class="hidden text-center py-12">
-                    <div class="text-2xl text-rustic-gold/70 mb-4">🤠</div>
-                    <p class="text-xl text-rustic-gold/80" data-testid="text-empty-state">No gold nuggets found. Try a new claim!</p>
+                    <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-text-secondary/10 rounded-full">
+                        <svg class="w-6 h-6 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-xl text-text-secondary" data-testid="text-empty-state">No content found. Try a different search term!</p>
                 </div>
                 
                 <!-- Error State -->
                 <div id="errorState" class="hidden text-center py-12">
-                    <div class="text-2xl text-red-400 mb-4">⚠️</div>
-                    <p class="text-xl text-red-400" data-testid="text-error-state">Claim jumped! Something went wrong with the prospecting.</p>
+                    <div class="w-12 h-12 mx-auto mb-4 flex items-center justify-center bg-red-500/10 rounded-full">
+                        <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-xl text-red-400" data-testid="text-error-state">Discovery failed! Please try again.</p>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Mock game data for different search categories
-        const gameDatabase = {
+        // Mock content data for different search categories
+        const contentDatabase = {
             space: [
                 {
                     title: "Stellar Frontier",
@@ -244,40 +334,40 @@
             ],
             default: [
                 {
-                    title: "Golden Valley Ranch",
+                    title: "Premium Analytics Platform",
                     rating: 4.8,
-                    description: "Build and manage your own Wild West ranch in this charming simulation game.",
-                    category: "Simulation"
+                    description: "Advanced analytics platform with real-time insights and comprehensive reporting for business intelligence.",
+                    category: "Analytics"
                 },
                 {
-                    title: "Prospector's Dream",
+                    title: "Advanced Content Discovery",
                     rating: 4.9,
-                    description: "Strike it rich by mining for gold and precious gems in the frontier.",
-                    category: "Strategy"
+                    description: "AI-powered content discovery with machine learning algorithms for precision matching.",
+                    category: "AI/ML"
                 },
                 {
-                    title: "Frontier Justice",
+                    title: "Claims Management Suite",
                     rating: 4.7,
-                    description: "Become a legendary sheriff in this story-driven Western adventure.",
-                    category: "Adventure"
+                    description: "Comprehensive claims tracking and management with automated workflows.",
+                    category: "Management"
                 },
                 {
-                    title: "Saloon Tycoon",
+                    title: "Professional Dashboard",
                     rating: 4.6,
-                    description: "Run the most successful saloon in the Wild West and build your empire.",
-                    category: "Business"
+                    description: "Executive-level insights and reporting with customizable analytics views.",
+                    category: "Analytics"
                 },
                 {
-                    title: "Wild West Legends",
+                    title: "Enterprise Integration",
                     rating: 4.8,
-                    description: "Create your own cowboy legend in this open-world Western RPG.",
-                    category: "RPG"
+                    description: "Seamless integration with enterprise systems and third-party platforms.",
+                    category: "Enterprise"
                 }
             ]
         };
 
-        // Mock API function to simulate game search
-        async function mockGeminiApi(query) {
+        // Mock API function to simulate content search
+        async function mockContentApi(query) {
             // Simulate network latency
             await new Promise(resolve => setTimeout(resolve, 1500));
             
@@ -285,69 +375,69 @@
             
             // Determine which category to return based on query
             if (lowerQuery.includes('space') || lowerQuery.includes('galaxy') || lowerQuery.includes('star')) {
-                return gameDatabase.space;
+                return contentDatabase.space;
             } else if (lowerQuery.includes('puzzle') || lowerQuery.includes('brain') || lowerQuery.includes('logic')) {
-                return gameDatabase.puzzle;
+                return contentDatabase.puzzle;
             } else if (lowerQuery.includes('adventure') || lowerQuery.includes('quest') || lowerQuery.includes('explore')) {
-                return gameDatabase.adventure;
+                return contentDatabase.adventure;
             } else if (lowerQuery.includes('action') || lowerQuery.includes('fight') || lowerQuery.includes('combat')) {
-                return gameDatabase.action;
-            } else if (lowerQuery.trim() === '') {
-                return []; // Empty search returns no results
+                return contentDatabase.action;
+            } else if (lowerQuery.trim() === '' || lowerQuery.includes('no-results')) {
+                return []; // Empty search or no-results test returns no results
             } else {
-                return gameDatabase.default;
+                return contentDatabase.default;
             }
         }
 
-        // Function to create a game card element
-        function createGameCard(game) {
+        // Function to create a content card element
+        function createContentCard(content) {
             const card = document.createElement('div');
-            card.className = 'bg-darker-wood border-2 border-rustic-gold/50 rounded-xl p-6 shadow-lg hover:shadow-xl hover:border-rustic-gold transition-all duration-300 transform hover:scale-105 fade-in wood-texture';
-            card.setAttribute('data-testid', `card-game-${game.title.toLowerCase().replace(/\s+/g, '-')}`);
+            card.className = 'content-card rounded-xl p-6 shadow-lg fade-in';
+            card.setAttribute('data-testid', `card-content-${content.title.toLowerCase().replace(/\s+/g, '-')}`);
             
             card.innerHTML = `
                 <div class="mb-4">
-                    <h3 class="text-xl font-bold text-rustic-gold mb-2" data-testid="text-game-title">${game.title}</h3>
+                    <h3 class="text-xl font-semibold mb-2" style="color: var(--text-color, hsl(0 0% 95%))" data-testid="text-content-title">${content.title}</h3>
                     <div class="flex items-center space-x-2 mb-2">
-                        <div class="flex text-yellow-400">
-                            ${'★'.repeat(Math.floor(game.rating))}${'☆'.repeat(5 - Math.floor(game.rating))}
+                        <div class="flex text-warning-amber">
+                            ${'★'.repeat(Math.floor(content.rating))}${'☆'.repeat(5 - Math.floor(content.rating))}
                         </div>
-                        <span class="text-rustic-gold/80 text-sm" data-testid="text-game-rating">${game.rating}/5</span>
-                        <span class="bg-rustic-gold/20 text-rustic-gold px-2 py-1 rounded-full text-xs" data-testid="text-game-category">${game.category}</span>
+                        <span class="text-sm" style="color: var(--text-secondary, hsl(0 0% 70%))" data-testid="text-content-rating">${content.rating}/5</span>
+                        <span class="bg-accent-blue/20 text-accent-blue px-2 py-1 rounded-lg text-xs font-medium" data-testid="text-content-category">${content.category}</span>
                     </div>
                 </div>
-                <p class="text-rustic-gold/90 mb-6 leading-relaxed" data-testid="text-game-description">${game.description}</p>
-                <button class="w-full bg-rustic-gold text-dark-wood font-bold py-3 px-4 rounded-full hover:bg-rustic-gold/90 transition-all duration-300 transform hover:scale-105 active:scale-95" 
-                        data-testid="button-stake-claim"
-                        onclick="stakeClaimHandler('${game.title}')">
-                    Stake a Claim
+                <p class="mb-6 leading-relaxed" style="color: var(--text-secondary, hsl(0 0% 70%))" data-testid="text-content-description">${content.description}</p>
+                <button class="w-full bg-accent-blue text-white font-semibold py-3 px-4 rounded-lg hover:bg-accent-blue/90 transition-all duration-300 transform hover:scale-105 active:scale-95" 
+                        data-testid="button-manage-content"
+                        onclick="manageContentHandler('${content.title}')">
+                    Manage Content
                 </button>
             `;
             
             return card;
         }
 
-        // Function to handle staking a claim
-        function stakeClaimHandler(gameTitle) {
-            console.log(`Staked a claim on: ${gameTitle}`);
+        // Function to handle content management
+        function manageContentHandler(contentTitle) {
+            console.log(`Managing content: ${contentTitle}`);
             // You could add more functionality here like saving to localStorage
-            alert(`🤠 Claim staked on "${gameTitle}"! This nugget is now in your prospecting bag.`);
+            alert(`📋 Content "${contentTitle}" added to your management dashboard.`);
         }
 
         // Function to display search results
-        function displayResults(games) {
+        function displayResults(content) {
             const resultsGrid = document.getElementById('resultsGrid');
             const emptyState = document.getElementById('emptyState');
             
             // Clear previous results
             resultsGrid.innerHTML = '';
             
-            if (games.length === 0) {
+            if (content.length === 0) {
                 emptyState.classList.remove('hidden');
             } else {
                 emptyState.classList.add('hidden');
-                games.forEach(game => {
-                    const card = createGameCard(game);
+                content.forEach(item => {
+                    const card = createContentCard(item);
                     resultsGrid.appendChild(card);
                 });
             }
@@ -388,7 +478,7 @@
                 toggleLoadingState(true);
                 
                 // Perform mock API call
-                const results = await mockGeminiApi(query);
+                const results = await mockContentApi(query);
                 
                 // Hide loading state and show results
                 toggleLoadingState(false);
@@ -401,10 +491,46 @@
             }
         }
 
+        // Theme management
+        function initTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            if (theme === 'light') {
+                document.documentElement.classList.add('light');
+                document.body.style.background = 'hsl(0 0% 98%)';
+                document.getElementById('themeIcon').textContent = '☀️';
+            } else {
+                document.documentElement.classList.remove('light');
+                document.body.style.background = 'hsl(220 15% 8%)';
+                document.getElementById('themeIcon').textContent = '🌙';
+            }
+        }
+        
+        function toggleTheme() {
+            const isLight = document.documentElement.classList.contains('light');
+            if (isLight) {
+                document.documentElement.classList.remove('light');
+                document.body.style.background = 'hsl(220 15% 8%)';
+                document.getElementById('themeIcon').textContent = '🌙';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.add('light');
+                document.body.style.background = 'hsl(0 0% 98%)';
+                document.getElementById('themeIcon').textContent = '☀️';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+        
         // Event listeners
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('searchInput');
             const prospectBtn = document.getElementById('prospectBtn');
+            const themeToggle = document.getElementById('themeToggle');
+            
+            // Initialize theme
+            initTheme();
+            
+            // Theme toggle handler
+            themeToggle.addEventListener('click', toggleTheme);
             
             // Button click handler
             prospectBtn.addEventListener('click', performSearch);
@@ -417,7 +543,7 @@
             });
             
             // Show default results on page load
-            displayResults(gameDatabase.default);
+            displayResults(contentDatabase.default);
         });
     </script>
 </body>

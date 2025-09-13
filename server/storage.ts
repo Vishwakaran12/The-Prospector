@@ -90,7 +90,9 @@ export class MemStorage implements IStorage {
       isProcessed: insertContent.isProcessed ?? false,
       content: insertContent.content ?? null,
       title: insertContent.title ?? null,
-      description: insertContent.description ?? null
+      description: insertContent.description ?? null,
+      metadata: insertContent.metadata ?? null,
+      geminiAnalysis: insertContent.geminiAnalysis ?? null
     };
     this.content.set(id, content);
     return content;
@@ -157,6 +159,7 @@ export class MemStorage implements IStorage {
       status: insertClaim.status || 'active',
       priority: insertClaim.priority || 'medium',
       notes: insertClaim.notes ?? null,
+      tags: insertClaim.tags ?? null,
       claimedAt: now,
       updatedAt: now
     };

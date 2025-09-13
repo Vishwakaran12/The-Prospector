@@ -1,72 +1,94 @@
-# The Prospector - Wild West Gaming Tool Design Guidelines
+# Content Discovery Tool - Professional Design Guidelines
 
 ## Design Approach
-**Reference-Based Approach**: Drawing inspiration from Western-themed games like Red Dead Redemption, Deadwood, and classic Wild West aesthetics combined with modern gaming interfaces.
+**Design System Approach**: Material Design principles with premium customizations, emphasizing clean minimalism and professional sophistication for content management tools.
 
 ## Core Design Elements
 
 ### A. Color Palette
-**Dark Mode Primary** (Wild West Theme):
-- Primary Background: 28 15% 8% (Deep dark brown/black)
-- Container Background: 30 20% 12% (Dark weathered wood)
-- Accent Gold: 43 65% 70% (Rustic gold #d4b58e)
-- Text Primary: 43 25% 85% (Warm off-white)
-- Text Secondary: 43 15% 65% (Muted gold-brown)
+**Dark Mode Primary**:
+- Primary Background: 220 15% 8% (Deep charcoal)
+- Container Background: 220 10% 12% (Subtle dark gray)
+- Accent Blue: 210 85% 65% (Professional blue)
+- Text Primary: 0 0% 95% (Clean white)
+- Text Secondary: 0 0% 70% (Muted gray)
+- Success Green: 140 60% 55% (Content found)
+- Warning Amber: 35 85% 60% (Processing states)
+
+**Light Mode Primary**:
+- Primary Background: 0 0% 98% (Clean white)
+- Container Background: 220 10% 96% (Subtle light gray)
+- Text Primary: 220 15% 15% (Dark charcoal)
+- Text Secondary: 220 10% 45% (Medium gray)
 
 ### B. Typography
-- **Primary Font**: 'Creepster' (Google Fonts) for main title - evokes Wild West wanted posters
-- **Body Font**: System font stack for readability
-- **Hierarchy**: Large title (3xl+), medium subtitles, standard body text
+- **Primary Font**: Inter (Google Fonts) - modern, professional sans-serif
+- **Monospace**: JetBrains Mono for URLs and technical content
+- **Hierarchy**: Clean scale from text-sm to text-4xl with consistent line heights
 
 ### C. Layout System
-**Tailwind Spacing**: Primary units of 4, 6, 8, and 12
-- Generous padding (p-6, p-8) for breathing room
-- Consistent margins (m-4, m-6) between elements
-- Large gaps (gap-6, gap-8) in grid layouts
+**Tailwind Spacing**: Primary units of 4, 6, 8, 16, and 24
+- Generous whitespace (p-8, p-16) for premium feel
+- Consistent component spacing (gap-6, gap-8)
+- Large content areas with breathing room
 
 ### D. Component Library
 
 **Core UI Elements**:
-- **Container**: Semi-transparent dark background with thick gold border (border-4)
-- **Search Input**: Gold border, dark background, rounded styling
-- **Buttons**: Gold background with rounded corners, subtle transitions
-- **Cards**: Dark containers with gold accents, shadow effects
+- **Containers**: Clean cards with subtle shadows and rounded-lg borders
+- **Search Interface**: Prominent search bar with advanced filters
+- **Action Buttons**: Primary blue with subtle gradients, secondary outlined variants
+- **Status Indicators**: Color-coded chips for content status (scraped, processing, failed)
 
-**Navigation**: Minimal - single-page focus on prospecting tool
+**Navigation**:
+- Clean sidebar with organized sections (Search, Claims, History, Settings)
+- Breadcrumb navigation for deep content exploration
+- Tabbed interfaces for data organization
 
-**Forms**: 
-- Dark inputs with gold borders
-- Themed placeholder text ("What are you prospecting for?")
-- Large, prominent search button
+**Forms**:
+- Floating labels with smooth transitions
+- Input groups for complex search parameters
+- Toggle switches for advanced options
+- Multi-select dropdowns for content filtering
 
 **Data Displays**:
-- Grid layout for game results (responsive: 1-3 columns)
-- Individual game cards with title, rating, description
-- Loading states with themed messaging
+- **Content Grid**: Responsive masonry layout for discovered content
+- **Claims Management**: Table view with sorting, filtering, and bulk actions
+- **Content Preview**: Modal overlays with full content display
+- **Analytics Dashboard**: Clean charts and metrics cards
 
-**Overlays**: Simple loading indicator with spinning icon
+**Overlays**:
+- Modal dialogs for content details and settings
+- Slide-over panels for quick actions
+- Toast notifications for status updates
+- Loading skeletons maintaining layout structure
 
 ### E. Visual Treatments
 
-**Themed Messaging**:
-- "Prospecting for gold nuggets..." (loading)
-- "No gold nuggets found. Try a new claim!" (empty state)
-- "Stake a Claim" (action buttons)
+**Professional Messaging**:
+- "Discovering content..." (loading states)
+- "Content discovery complete" (success)
+- "Manage your content claims" (section headers)
+- "Premium content discovery at your fingertips" (hero messaging)
 
-**Border & Effects**:
-- Rounded corners (rounded-xl) for modern touch
-- Shadow effects for depth
-- Gold borders for emphasis
-- Semi-transparent overlays
+**Effects & Interactions**:
+- Subtle hover states with gentle transitions
+- Card elevation changes on interaction
+- Progressive disclosure for advanced features
+- Smooth page transitions between sections
 
-**Gradients**: Subtle dark gradients on containers to enhance the weathered wood aesthetic
+**Gradients**: Minimal use - subtle background gradients on hero sections and premium feature highlights using primary and accent blue tones.
 
 ## Key Design Principles
-1. **Authentic Western Theme**: Consistent use of gold, dark wood, and rustic typography
-2. **Gaming-Friendly UX**: Clear hierarchy, prominent search, easy-to-scan results
-3. **Immersive Language**: All UI text maintains Wild West prospecting metaphors
-4. **Modern Functionality**: Clean, responsive design with smooth interactions
-5. **Single-Purpose Focus**: Streamlined interface centered on game search functionality
+1. **Professional Elegance**: Clean lines, generous whitespace, sophisticated color choices
+2. **Content-First Design**: Clear hierarchy emphasizing discovered content and claims
+3. **Premium User Experience**: Smooth interactions, helpful micro-animations, polished details
+4. **Scalable Architecture**: Modular components supporting complex data relationships
+5. **Accessibility Focus**: High contrast ratios, clear focus states, comprehensive keyboard navigation
 
 ## Images
-**No hero image required** - the design relies on typography, color, and thematic elements rather than imagery. The dark, textured background serves as the primary visual foundation.
+**Hero Image**: Large, abstract geometric pattern or subtle gradient overlay representing data discovery and content mapping. Positioned as full-width hero section with overlay text and primary CTA.
+
+**Content Thumbnails**: Placeholder cards for scraped content previews in grid layouts.
+
+**Empty States**: Minimalist illustrations for empty search results and new user onboarding.

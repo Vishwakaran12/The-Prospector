@@ -67,19 +67,8 @@ export const insertClaimSchema = createInsertSchema(claims).pick({
 });
 
 // URL validation schema
-export const urlSchema = z.string()
-  .url("Must be a valid URL")
-  .refine((url) => {
-    const parsed = new URL(url);
-    return ['http:', 'https:'].includes(parsed.protocol);
-  }, "Only HTTP and HTTPS URLs are allowed")
-  .refine((url) => {
-    const parsed = new URL(url);
-    const blockedHosts = ['localhost', '0.0.0.0'];
-    const blockedDomains = ['.local', '.internal', '.corp', '.lan', '.intranet'];
-    return !blockedHosts.includes(parsed.hostname) && 
-           !blockedDomains.some(domain => parsed.hostname.endsWith(domain));
-  }, "URL hostname is not allowed for security reasons");
+// Simplified URL schema without security restrictions
+export const urlSchema = z.string().url("Must be a valid URL");
 
 // Content discovery request schema
 export const contentDiscoverySchema = z.object({

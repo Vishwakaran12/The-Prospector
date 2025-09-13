@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Prospector - Cyberpunk Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cyber-blue: #00ffff;
+            --cyber-pink: #ff0080;
+            --cyber-green: #00ff41;
+            --cyber-orange: #ff6b00;
+            --cyber-purple: #8b00ff;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--dark-bg);
+            color: var(--cyber-blue);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Animated Grid Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            z-index: -2;
+        }
+
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Particle Effects */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--cyber-blue);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--cyber-blue), var(--cyber-pink), var(--cyber-green));
+            background-size: 400% 400%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--cyber-green);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .search-section {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 255, 255, 0.1));
+            border: 2px solid var(--cyber-blue);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-section::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--cyber-blue), var(--cyber-pink), var(--cyber-green), var(--cyber-orange));
+            border-radius: 15px;
+            z-index: -1;
+            animation: borderGlow 3s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        .input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .cyber-input {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--cyber-blue);
+            border-radius: 10px;
+            color: var(--cyber-blue);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--cyber-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .cyber-button {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, var(--cyber-blue), var(--cyber-green));
+            border: none;
+            border-radius: 10px;
+            color: black;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyber-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .cyber-button:hover::before {
+            left: 100%;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 255, 0.4);
+        }
+
+        .results-section {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid var(--cyber-green);
+            border-radius: 15px;
+            padding: 30px;
+            min-height: 300px;
+        }
+
+        .results-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: var(--cyber-green);
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .result-item {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 128, 0.05));
+            border: 1px solid var(--cyber-blue);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .result-item:hover {
+            transform: translateX(10px);
+            border-color: var(--cyber-pink);
+            box-shadow: -5px 0 15px rgba(255, 0, 128, 0.3);
+        }
+
+        .result-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            color: var(--cyber-blue);
+            margin-bottom: 10px;
+        }
+
+        .result-link {
+            color: var(--cyber-green);
+            text-decoration: none;
+            word-break: break-all;
+            transition: color 0.3s ease;
+        }
+
+        .result-link:hover {
+            color: var(--cyber-pink);
+            text-shadow: 0 0 5px rgba(255, 0, 128, 0.5);
+        }
+
+        .result-snippet {
+            color: #ccc;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .loading {
+            text-align: center;
+            font-size: 1.2rem;
+            color: var(--cyber-orange);
+            animation: loadingPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .archive-section {
+            background: rgba(139, 0, 255, 0.1);
+            border: 2px solid var(--cyber-purple);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+        }
+
+        .archive-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            color: var(--cyber-purple);
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .archive-item {
+            background: rgba(139, 0, 255, 0.1);
+            border: 1px solid var(--cyber-purple);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .archive-item:hover {
+            background: rgba(139, 0, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .archive-query {
+            color: var(--cyber-purple);
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .archive-date {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+            animation: glitch 2s infinite;
+        }
+
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .cyber-input {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <header class="header">
+            <h1 class="title glitch">THE PROSPECTOR</h1>
+            <p class="subtitle">Community Event Discovery Network v3.0</p>
+        </header>
+
+        <section class="search-section">
+            <div class="input-group">
+                <input type="text" id="locationInput" class="cyber-input" placeholder="Enter location (city, state, zip)..." required />
+                <select id="genreSelect" class="cyber-input" style="min-width: 200px;">
+                    <option value="">All Genres</option>
+                    <option value="tech">Technology & Tech Meetups</option>
+                    <option value="business">Business & Networking</option>
+                    <option value="arts">Arts & Culture</option>
+                    <option value="music">Music & Concerts</option>
+                    <option value="sports">Sports & Fitness</option>
+                    <option value="food">Food & Drink</option>
+                    <option value="gaming">Gaming & Esports</option>
+                    <option value="education">Education & Learning</option>
+                    <option value="health">Health & Wellness</option>
+                    <option value="social">Social & Community</option>
+                    <option value="outdoor">Outdoor & Adventure</option>
+                    <option value="creative">Creative & DIY</option>
+                    <option value="professional">Professional Development</option>
+                    <option value="charity">Volunteer & Charity</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <select id="eventTypeSelect" class="cyber-input" style="min-width: 200px;">
+                    <option value="">All Event Types</option>
+                    <option value="meetup">Meetups & Groups</option>
+                    <option value="workshop">Workshops & Classes</option>
+                    <option value="conference">Conferences & Seminars</option>
+                    <option value="networking">Networking Events</option>
+                    <option value="social">Social Gatherings</option>
+                    <option value="online">Online Events</option>
+                    <option value="festival">Festivals & Fairs</option>
+                    <option value="concert">Concerts & Shows</option>
+                    <option value="sports">Sports Events</option>
+                    <option value="volunteer">Volunteer Opportunities</option>
+                </select>
+                <input type="number" id="radiusInput" class="cyber-input" placeholder="Radius (miles)" value="25" min="1" max="100" style="max-width: 150px;" />
+                <button onclick="searchEvents()" class="cyber-button">Find Events</button>
+            </div>
+            <div class="input-group">
+                <button onclick="clearResults()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-pink), var(--cyber-orange));">Clear Results</button>
+                <button onclick="loadNearbyEvents()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-purple), var(--cyber-blue));">Find Nearby</button>
+            </div>
+        </section>
+
+        <section class="results-section">
+            <h2 class="results-title">Community Events Found</h2>
+            <div id="results">
+                <p style="text-align: center; color: #666;">Enter location and preferences to discover events...</p>
+            </div>
+        </section>
+
+        <section class="archive-section">
+            <h2 class="archive-title">Event Search History</h2>
+            <div id="archive">
+                <p style="text-align: center; color: #666;">No previous event searches...</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particleContainer = document.getElementById('particles');
+            const colors = ['#00ffff', '#ff0080', '#00ff41', '#ff6b00', '#8b00ff'];
+            
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                particleContainer.appendChild(particle);
+            }
+        }
+
+        // Search function
+        async function search() {
+            const query = document.getElementById('searchQuery').value;
+            const url = document.getElementById('urlInput').value;
+            
+            if (!query.trim()) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Processing search request...</div>';
+
+            try {
+                const requestBody = { query };
+                if (url.trim()) {
+                    requestBody.url = url;
+                }
+
+                const response = await fetch('/api/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data.results || []);
+                loadArchive(); // Refresh archive
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Search operation failed. Check network connection.</div>';
+            }
+        }
+
+        // Display search results
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = '<div style="text-align: center; color: #666;">No results found.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = results.map(result => `
+                <div class="result-item">
+                    <div class="result-title">${result.title || 'No Title'}</div>
+                    <a href="${result.link}" target="_blank" class="result-link">${result.link}</a>
+                    <div class="result-snippet">${result.snippet || 'No description available'}</div>
+                </div>
+            `).join('');
+        }
+
+        // Clear results
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<p style="text-align: center; color: #666;">Results cleared.</p>';
+            document.getElementById('searchQuery').value = '';
+            document.getElementById('urlInput').value = '';
+        }
+
+        // Load archived searches
+        async function loadArchive() {
+            try {
+                const response = await fetch('/api/searches');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const searches = await response.json();
+                displayArchive(searches);
+            } catch (error) {
+                console.error('Archive load error:', error);
+                document.getElementById('archive').innerHTML = '<p style="text-align: center; color: var(--cyber-pink);">Archive unavailable.</p>';
+            }
+        }
+
+        // Display archive
+        function displayArchive(searches) {
+            const archiveDiv = document.getElementById('archive');
+            
+            if (!searches || searches.length === 0) {
+                archiveDiv.innerHTML = '<p style="text-align: center; color: #666;">No archived searches...</p>';
+                return;
+            }
+
+            archiveDiv.innerHTML = searches.slice(-10).reverse().map(search => `
+                <div class="archive-item" onclick="loadSearch('${search.query}')">
+                    <div class="archive-query">${search.query}</div>
+                    <div class="archive-date">${new Date(search.timestamp).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        // Load search from archive
+        function loadSearch(query) {
+            document.getElementById('searchQuery').value = query;
+        }
+
+        // Handle Enter key
+        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+
+        // Initialize
+        createParticles();
+        loadArchive();
+    </script>
+</body>
+</html>

@@ -6,10 +6,14 @@ dotenv.config();
 const mongoUri = process.env.MONGODB_URI;
 
 if (!mongoUri) {
-  throw new Error('MONGODB_URI is not defined in .env');
+  console.log('MONGODB_URI not defined, MongoDB connection will be skipped');
 }
 
 export const connectMongo = async () => {
+  if (!mongoUri) {
+    throw new Error('MongoDB URI not configured');
+  }
+  
   try {
     await mongoose.connect(mongoUri, {
       dbName: 'the-prospector',
@@ -17,6 +21,6 @@ export const connectMongo = async () => {
     console.log('MongoDB connected');
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    process.exit(1);
+    throw err; // Throw the error instead of exiting
   }
 };

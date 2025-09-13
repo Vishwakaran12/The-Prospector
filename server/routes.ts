@@ -1,8 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { scrapeUrl, scrapeMultipleUrls } from "./services/scraper";
+import { scrapeUrl, scrapeMultipleUrls } from "./services/scraper-simple";
 import { analyzeContent, generateContentRecommendations } from "./services/gemini";
+import { searchWeb, searchPlatformSpecific } from "./services/websearch";
 import { 
   insertContentSchema, 
   insertClaimSchema, 
@@ -22,14 +23,22 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "OK", message: "Server is running" });
+  });
+
   // Content Discovery Routes
   
   // POST /api/content/discover - Discover content from URL or search query
   app.post("/api/content/discover", async (req, res) => {
     try {
+      console.log('Content discovery request received:', req.body);
+      
       // Validate request body with Zod schema
       const validationResult = contentDiscoverySchema.safeParse(req.body);
       if (!validationResult.success) {
+        console.log('Validation failed:', validationResult.error.errors);
         return res.status(400).json({ 
           error: "Invalid request data", 
           details: validationResult.error.errors.map(e => ({
@@ -39,6 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log('Validation passed:', validationResult.data);
       const { url, query, useGemini } = validationResult.data;
 
       if (url) {
@@ -87,29 +97,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json({ content, isNew: true });
 
       } else if (query) {
-        // Search existing content or discover new content based on query
-        const searchResults = await storage.searchContent(query);
+        console.log('Performing web search for query:', query);
         
-        // TODO: In future, could also search external sources based on query
-        res.json({ 
-          results: searchResults,
+        // Search the web for new content
+        const webSearchResults = await searchWeb(query, {
+          engine: 'duckduckgo',
+          maxResults: 20,
+          includeSocial: true,
+          platforms: ['reddit', 'youtube']
+        });
+        
+        console.log(`Found ${webSearchResults.results.length} web search results`);
+        
+        // Also search existing local content
+        const localResults = await storage.searchContent(query);
+        console.log(`Found ${localResults.length} local results`);
+        
+        // Combine and format results
+        const combinedResults = {
           query,
-          suggestions: await generateContentRecommendations(
-            searchResults.map(c => ({
+          webResults: webSearchResults.results,
+          localResults,
+          totalWebResults: webSearchResults.totalResults,
+          searchEngine: webSearchResults.searchEngine,
+          timestamp: new Date().toISOString(),
+          suggestions: localResults.length > 0 ? await generateContentRecommendations(
+            localResults.map(c => ({
               title: c.title || 'Untitled',
               categories: (c.geminiAnalysis && typeof c.geminiAnalysis === 'object' && 'categories' in c.geminiAnalysis && Array.isArray(c.geminiAnalysis.categories)) ? c.geminiAnalysis.categories : [],
               keywords: (c.geminiAnalysis && typeof c.geminiAnalysis === 'object' && 'keywords' in c.geminiAnalysis && Array.isArray(c.geminiAnalysis.keywords)) ? c.geminiAnalysis.keywords : []
             }))
-          )
-        });
+          ) : []
+        };
+        
+        res.json(combinedResults);
       }
 
     } catch (error) {
       console.error('Content discovery error:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
       if (error instanceof z.ZodError) {
         return res.status(400).json({ error: "Validation failed", details: error.errors });
       }
-      res.status(500).json({ error: "Failed to discover content" });
+      res.status(500).json({ error: "Failed to discover content", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // POST /api/search/web - Direct web search
+  app.post("/api/search/web", async (req, res) => {
+    try {
+      const { query, engine = 'duckduckgo', maxResults = 10, platforms = [] } = req.body;
+      
+      if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: "Query is required" });
+      }
+      
+      console.log(`Web search request: "${query}"`);
+      
+      const results = await searchWeb(query, {
+        engine,
+        maxResults,
+        includeSocial: true,
+        platforms
+      });
+      
+      res.json(results);
+      
+    } catch (error) {
+      console.error('Web search error:', error);
+      res.status(500).json({ error: "Web search failed", details: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  // POST /api/search/platform - Search specific social media platform
+  app.post("/api/search/platform", async (req, res) => {
+    try {
+      const { query, platform, maxResults = 10 } = req.body;
+      
+      if (!query || !platform) {
+        return res.status(400).json({ error: "Query and platform are required" });
+      }
+      
+      console.log(`Platform search: "${query}" on ${platform}`);
+      
+      const results = await searchPlatformSpecific(platform, query, maxResults);
+      
+      res.json({
+        query,
+        platform,
+        results,
+        timestamp: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Platform search error:', error);
+      res.status(500).json({ error: "Platform search failed", details: error instanceof Error ? error.message : String(error) });
     }
   });
 

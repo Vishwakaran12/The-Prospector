@@ -21,21 +21,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
-    ],
-    "/debug": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/debug.js"
-    ],
-    "/debugnuggets": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/debugnuggets.js"
-    ],
-    "/search/[type]": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/search/[type].js"
     ]
   },
   "ampFirstPages": []

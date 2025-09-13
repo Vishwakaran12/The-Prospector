@@ -4,6 +4,11 @@ import sqlite3 from 'sqlite3';
 import { open } from 'sqlite';
 import axios from 'axios';
 import { exec } from 'child_process';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
@@ -99,7 +104,7 @@ app.get('/stats', async (req, res) => {
 //   // TODO: Implement user registration
 // });
 
-const PORT = process.env.PORT || 8001;
+const PORT = process.env.PORT || 3002;
 app.listen(PORT, () => {
   console.log(`Prospector Express backend running on port ${PORT}`);
 });

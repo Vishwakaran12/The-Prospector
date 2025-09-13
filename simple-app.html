@@ -299,50 +299,6 @@
             50% { opacity: 1; }
         }
 
-        .archive-section {
-            background: rgba(139, 0, 255, 0.1);
-            border: 2px solid var(--cyber-purple);
-            border-radius: 15px;
-            padding: 30px;
-            margin-top: 30px;
-        }
-
-        .archive-title {
-            font-family: 'Orbitron', monospace;
-            font-size: 1.8rem;
-            color: var(--cyber-purple);
-            margin-bottom: 20px;
-            text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .archive-item {
-            background: rgba(139, 0, 255, 0.1);
-            border: 1px solid var(--cyber-purple);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .archive-item:hover {
-            background: rgba(139, 0, 255, 0.2);
-            transform: translateX(5px);
-        }
-
-        .archive-query {
-            color: var(--cyber-purple);
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .archive-date {
-            color: #888;
-            font-size: 0.8rem;
-        }
-
         /* Glitch Effect */
         .glitch {
             position: relative;
@@ -357,23 +313,269 @@
             80% { transform: translate(2px, -2px); }
         }
 
-        /* Responsive Design */
+        /* Burger Menu Styles */
+        .burger-menu {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid var(--cyber-blue);
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .burger-menu:hover {
+            background: rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 20px var(--cyber-blue);
+        }
+
+        .burger-line {
+            width: 25px;
+            height: 3px;
+            background: var(--cyber-blue);
+            margin: 5px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        .burger-menu.open .burger-line:nth-child(1) {
+            transform: rotate(-45deg) translate(-5px, 6px);
+        }
+
+        .burger-menu.open .burger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .burger-menu.open .burger-line:nth-child(3) {
+            transform: rotate(45deg) translate(-5px, -6px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95), rgba(0, 20, 40, 0.95));
+            border-right: 2px solid var(--cyber-blue);
+            transition: left 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+            padding: 80px 20px 20px 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-title {
+            color: var(--cyber-blue);
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--cyber-blue);
+            padding-bottom: 10px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-section h3 {
+            color: var(--cyber-orange);
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            border-left: 3px solid var(--cyber-orange);
+            padding-left: 10px;
+        }
+
+        .history-item {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid var(--cyber-blue);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .history-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateX(5px);
+            border-color: var(--cyber-green);
+        }
+
+        .history-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-query {
+            color: var(--cyber-blue);
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .history-date {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .history-results {
+            color: var(--cyber-green);
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .delete-btn {
+            background: rgba(255, 0, 100, 0.2);
+            border: 1px solid var(--cyber-pink);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+
+        .delete-btn:hover {
+            background: rgba(255, 0, 100, 0.4);
+            transform: scale(1.1);
+            box-shadow: 0 0 10px var(--cyber-pink);
+        }
+
+        .delete-btn:active {
+            transform: scale(0.95);
+        }
+
+        .sidebar-stats {
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid var(--cyber-orange);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--cyber-orange);
+            font-size: 0.9rem;
+        }
+
+        .clear-history-btn {
+            background: linear-gradient(45deg, var(--cyber-pink), var(--cyber-orange));
+            color: black;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .clear-history-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--cyber-pink);
+        }
+
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Responsive adjustments */
         @media (max-width: 768px) {
-            .title {
-                font-size: 2.5rem;
+            .sidebar {
+                width: 320px;
+                left: -320px;
             }
             
-            .input-group {
-                flex-direction: column;
-            }
-            
-            .cyber-input {
-                min-width: 100%;
+            .container {
+                padding-left: 10px;
+                padding-right: 10px;
             }
         }
     </style>
 </head>
 <body>
+    <!-- Burger Menu -->
+    <div class="burger-menu" onclick="toggleSidebar()">
+        <div class="burger-line"></div>
+        <div class="burger-line"></div>
+        <div class="burger-line"></div>
+    </div>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-title">🕵️ SEARCH HISTORY</div>
+        
+        <div class="sidebar-section">
+            <div class="sidebar-stats">
+                <div class="stat-item">
+                    <span>Total Searches:</span>
+                    <span id="totalSearches">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Events Found:</span>
+                    <span id="totalEvents">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>News Found:</span>
+                    <span id="totalNews">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>📝 Recent Searches</h3>
+            <div id="searchHistory">
+                <!-- Search history will be populated here -->
+            </div>
+        </div>
+
+        <div class="sidebar-section">
+            <h3>⭐ Quick Actions</h3>
+            <button class="clear-history-btn" onclick="clearSearchHistory()">
+                Clear History
+            </button>
+        </div>
+    </div>
+
     <div class="particles" id="particles"></div>
     
     <div class="container">
@@ -383,6 +585,37 @@
         </header>
 
         <section class="search-section">
+            <!-- Tab Navigation -->
+            <div style="display: flex; margin-bottom: 20px; border-bottom: 2px solid var(--cyber-blue);">
+                <button id="eventsTab" class="tab-button" onclick="switchTab('events')" style="flex: 1; padding: 12px; background: var(--cyber-blue); color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 5px 0 0 0;">
+                    🎪 LIVE EVENTS
+                </button>
+                <button id="newsTab" class="tab-button" onclick="switchTab('news')" style="flex: 1; padding: 12px; background: rgba(0, 255, 255, 0.2); color: var(--cyber-blue); border: none; cursor: pointer; border-radius: 0 5px 0 0;">
+                    📰 EVENT NEWS
+                </button>
+            </div>
+
+            <!-- Sorting & Filter Options -->
+            <div style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; flex-wrap: wrap;">
+                <label style="color: var(--cyber-orange); font-weight: bold;">🔀 Sort by:</label>
+                <select id="sortBy" style="padding: 8px; background: rgba(255, 165, 0, 0.1); border: 1px solid var(--cyber-orange); border-radius: 5px; color: white;">
+                    <option value="relevance">Relevance Score</option>
+                    <option value="date">Date (Soonest First)</option>
+                    <option value="popularity">Popularity</option>
+                    <option value="source">Source Quality</option>
+                    <option value="price">Price (Free First)</option>
+                </select>
+                
+                <label style="color: var(--cyber-pink); margin-left: 15px; font-weight: bold;">🎯 Focus:</label>
+                <select id="eventFocus" style="padding: 8px; background: rgba(255, 20, 147, 0.1); border: 1px solid var(--cyber-pink); border-radius: 5px; color: white;">
+                    <option value="all">All Events</option>
+                    <option value="today">Today Only</option>
+                    <option value="free">Free Events</option>
+                    <option value="ticketed">Paid Events</option>
+                    <option value="nearby">Close to Location</option>
+                </select>
+            </div>
+
             <div class="input-group">
                 <input type="text" id="locationInput" class="cyber-input" placeholder="Enter location (city, state, zip)..." required />
                 <select id="genreSelect" class="cyber-input" style="min-width: 200px;">
@@ -434,16 +667,25 @@
         </section>
 
         <section class="results-section">
-            <h2 class="results-title">Community Events Found</h2>
-            <div id="results">
-                <p style="text-align: center; color: #666;">Enter location and preferences to discover events...</p>
+            <!-- Events Tab Content -->
+            <div id="eventsContent" class="tab-content">
+                <h2 class="results-title">🎪 Live Events & Happenings</h2>
+                <div id="eventsResults">
+                    <p style="text-align: center; color: #666;">Enter location and preferences to discover live events...</p>
+                </div>
             </div>
-        </section>
-
-        <section class="archive-section">
-            <h2 class="archive-title">Event Search History</h2>
-            <div id="archive">
-                <p style="text-align: center; color: #666;">No previous event searches...</p>
+            
+            <!-- News Tab Content -->
+            <div id="newsContent" class="tab-content" style="display: none;">
+                <h2 class="results-title">📰 Event News & Announcements</h2>
+                <div id="newsResults">
+                    <p style="text-align: center; color: #666;">Event news and announcements will appear here...</p>
+                </div>
+            </div>
+            
+            <!-- Combined Results (fallback) -->
+            <div id="results" style="display: none;">
+                <p style="text-align: center; color: #666;">Search results will appear here...</p>
             </div>
         </section>
     </div>
@@ -465,7 +707,75 @@
             }
         }
 
-        // Enhanced event search function
+        // Global variables for current data and tab management
+        let currentEventsData = null;
+        let currentActiveTab = 'events';
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            currentActiveTab = tabName;
+            
+            // Update tab buttons
+            document.getElementById('eventsTab').style.background = tabName === 'events' ? 'var(--cyber-blue)' : 'rgba(0, 255, 255, 0.2)';
+            document.getElementById('eventsTab').style.color = tabName === 'events' ? 'black' : 'var(--cyber-blue)';
+            document.getElementById('newsTab').style.background = tabName === 'news' ? 'var(--cyber-blue)' : 'rgba(0, 255, 255, 0.2)';
+            document.getElementById('newsTab').style.color = tabName === 'news' ? 'black' : 'var(--cyber-blue)';
+            
+            // Show/hide content
+            document.getElementById('eventsContent').style.display = tabName === 'events' ? 'block' : 'none';
+            document.getElementById('newsContent').style.display = tabName === 'news' ? 'block' : 'none';
+            
+            // If we have current data, re-display it for the active tab
+            if (currentEventsData) {
+                displaySeparatedResults(currentEventsData);
+            }
+        }
+
+        // Enhanced sorting function
+        function sortEvents(events, sortBy) {
+            return [...events].sort((a, b) => {
+                switch(sortBy) {
+                    case 'date':
+                        return new Date(a.date || 0) - new Date(b.date || 0);
+                    case 'popularity':
+                        return (b.attendees || 0) - (a.attendees || 0);
+                    case 'source':
+                        const sourceQuality = {'Ticketmaster': 5, 'Eventbrite': 4, 'NewsAPI': 3, 'OpenWeather': 2, 'API-Ninja': 1};
+                        return (sourceQuality[b.source] || 0) - (sourceQuality[a.source] || 0);
+                    case 'price':
+                        const aFree = a.isFree || a.price === 'Free' || !a.price;
+                        const bFree = b.isFree || b.price === 'Free' || !b.price;
+                        if (aFree && !bFree) return -1;
+                        if (!aFree && bFree) return 1;
+                        return 0;
+                    case 'relevance':
+                    default:
+                        return (b.relevanceScore || b.confidence || 0) - (a.relevanceScore || a.confidence || 0);
+                }
+            });
+        }
+
+        // Filter events based on focus
+        function filterEvents(events, focus) {
+            return events.filter(event => {
+                switch(focus) {
+                    case 'today':
+                        const today = new Date().toDateString();
+                        return event.date && new Date(event.date).toDateString() === today;
+                    case 'free':
+                        return event.isFree || event.price === 'Free' || !event.price;
+                    case 'ticketed':
+                        return !event.isFree && event.price && event.price !== 'Free';
+                    case 'nearby':
+                        return event.coordinates || event.location;
+                    case 'all':
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        // Enhanced search function
         async function searchEvents() {
             const location = document.getElementById('locationInput').value.trim();
             const genre = document.getElementById('genreSelect').value;
@@ -482,20 +792,18 @@
             resultsDiv.innerHTML = '<div class="loading">Scanning event networks...</div>';
 
             try {
-                const requestBody = { 
-                    location, 
-                    genre: genre || undefined, 
-                    eventType: eventType || undefined,
-                    timeframe: timeframe || 'upcoming',
-                    radius: parseInt(radius) 
-                };
+                // Enhanced API now uses GET with query parameters
+                const queryParams = new URLSearchParams({
+                    location: location,
+                    genre: genre,
+                    timeframe: timeframe
+                });
 
-                const response = await fetch('/api/search-events', {
-                    method: 'POST',
+                const response = await fetch(`/api/search-events?${queryParams}`, {
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody)
+                    }
                 });
 
                 if (!response.ok) {
@@ -503,11 +811,14 @@
                 }
 
                 const data = await response.json();
-                displayEnhancedResults(data);
+                console.log('Search results:', data); // Debug log
+                
+                // Store the data globally and display in tabs
+                currentEventsData = data;
+                displaySeparatedResults(data);
                 
                 // Save the search
                 await saveEventSearch(data);
-                loadArchive();
             } catch (error) {
                 console.error('Event search error:', error);
                 resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Event search failed. Check network connection.</div>';
@@ -517,7 +828,7 @@
         // Real-time event discovery function
         async function discoverEventsNow() {
             const location = document.getElementById('locationInput').value.trim();
-            const radius = document.getElementById('radiusInput').value || 25;
+            const genre = document.getElementById('genreInput').value.trim() || 'events';
             
             if (!location) {
                 alert('Please enter a location for real-time discovery');
@@ -528,18 +839,18 @@
             resultsDiv.innerHTML = '<div class="loading">🔍 Discovering events happening now...</div>';
 
             try {
-                const requestBody = { 
-                    location, 
-                    radius: parseInt(radius),
-                    urgent: true 
-                };
+                // Use the working enhanced API endpoint
+                const queryParams = new URLSearchParams({
+                    location: location,
+                    genre: genre,
+                    timeframe: 'immediate'
+                });
 
-                const response = await fetch('/api/discover-events', {
-                    method: 'POST',
+                const response = await fetch(`/api/search-events?${queryParams}`, {
+                    method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(requestBody)
+                    }
                 });
 
                 if (!response.ok) {
@@ -547,16 +858,14 @@
                 }
 
                 const data = await response.json();
-                displayRealTimeResults(data);
+                console.log('Discover Now results:', data); // Debug log
+                
+                // Store the data globally and display in tabs
+                currentEventsData = data;
+                displaySeparatedResults(data);
                 
                 // Save the discovery
-                await saveEventSearch({
-                    location: data.location,
-                    genre: 'real-time-discovery',
-                    eventType: 'immediate',
-                    results: data.results
-                });
-                loadArchive();
+                await saveEventSearch(data);
             } catch (error) {
                 console.error('Real-time discovery error:', error);
                 resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Real-time discovery failed. Check network connection.</div>';
@@ -567,11 +876,18 @@
         function displayEnhancedResults(data) {
             const resultsDiv = document.getElementById('results');
             
-            if (!data.results || data.results.length === 0) {
+            // Enhanced server returns 'events' not 'results'
+            const events = data.events || data.results || [];
+            const location = data.metadata?.location || data.location || 'Unknown Location';
+            const genre = data.metadata?.genre || data.genre || '';
+            
+            console.log('Displaying results:', { events: events.length, data }); // Debug log
+            
+            if (!events || events.length === 0) {
                 resultsDiv.innerHTML = `
                     <div style="text-align: center; color: #666;">
-                        <p>No events found for "${data.location}"</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">Try adjusting your search criteria or using "Discover Now" for real-time results.</p>
+                        <p>No events found for "${location}"</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Try a different location or genre.</p>
                     </div>`;
                 return;
             }
@@ -579,20 +895,40 @@
             const header = `
                 <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-radius: 10px;">
                     <p style="color: var(--cyber-blue); font-weight: bold;">
-                        📍 Found ${data.total} events in ${data.location}
-                        ${data.genre && data.genre !== 'any' ? ` • ${data.genre}` : ''}
-                        ${data.eventType && data.eventType !== 'any' ? ` • ${data.eventType}` : ''}
+                        📍 Found ${data.totalFound || events.length} events in ${location}
+                        ${genre && genre !== 'any' ? ` • ${genre}` : ''}
                     </p>
                     <p style="color: #888; font-size: 0.9rem;">
-                        ${data.summary ? `Immediate: ${data.summary.immediate} | Upcoming: ${data.summary.upcoming} | Platforms: ${data.summary.platforms.length}` : ''}
+                        API Sources: ${data.apiSources ? data.apiSources.join(', ') : 'Multiple APIs'} | Quality: ${data.searchQuality || 'Enhanced'}
                     </p>
                 </div>
             `;
 
-            // Group results by urgency
-            const categorizedHTML = generateCategorizedHTML(data.categorized || {}, data.results);
+            // Display the events using the enhanced format
+            const eventsHTML = events.slice(0, 20).map(event => `
+                <div class="result-item" style="background: rgba(0, 255, 255, 0.05); border: 1px solid var(--cyber-blue); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div class="result-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <h3 style="color: var(--cyber-blue); margin: 0; flex-grow: 1;">${event.title}</h3>
+                        <div style="text-align: right; margin-left: 15px;">
+                            <span style="background: var(--cyber-pink); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${event.source || 'API'}</span>
+                            ${event.category ? `<br><span style="color: var(--cyber-orange); font-size: 0.8rem;">${event.category}</span>` : ''}
+                        </div>
+                    </div>
+                    <p style="color: #ccc; margin: 10px 0;">${event.description || 'Event details coming soon'}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <div>
+                            <span style="color: var(--cyber-green);">📍 ${event.location || location}</span>
+                            ${event.date ? `<br><span style="color: var(--cyber-orange);">🗓️ ${new Date(event.date).toLocaleDateString()}</span>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            ${event.price ? `<span style="color: var(--cyber-yellow);">💰 ${event.price}</span><br>` : ''}
+                            ${event.url ? `<a href="${event.url}" target="_blank" style="color: var(--cyber-pink); text-decoration: none;">View Details →</a>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
 
-            resultsDiv.innerHTML = header + categorizedHTML;
+            resultsDiv.innerHTML = header + eventsHTML;
         }
 
         // Display real-time discovery results
@@ -775,12 +1111,6 @@
             });
         }
 
-        // Legacy search function (fallback)
-        async function search() {
-            // Redirect to event search
-            await searchEvents();
-        }
-
         // Clear results
         function clearResults() {
             document.getElementById('results').innerHTML = '<p style="text-align: center; color: #666;">Results cleared.</p>';
@@ -789,53 +1119,6 @@
             document.getElementById('eventTypeSelect').value = '';
             document.getElementById('timeframeSelect').value = 'upcoming';
             document.getElementById('radiusInput').value = '25';
-        }
-
-        // Load archived searches
-        async function loadArchive() {
-            try {
-                const response = await fetch('/api/searches');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const searches = await response.json();
-                displayArchive(searches);
-            } catch (error) {
-                console.error('Archive load error:', error);
-                document.getElementById('archive').innerHTML = '<p style="text-align: center; color: var(--cyber-pink);">Archive unavailable.</p>';
-            }
-        }
-
-        // Display archive
-        function displayArchive(searches) {
-            const archiveDiv = document.getElementById('archive');
-            
-            if (!searches || searches.length === 0) {
-                archiveDiv.innerHTML = '<p style="text-align: center; color: #666;">No archived searches...</p>';
-                return;
-            }
-
-            archiveDiv.innerHTML = searches.slice(-10).reverse().map(search => `
-                <div class="archive-item" onclick="loadSearch('${search.query}')">
-                    <div class="archive-query">${search.query}</div>
-                    <div class="archive-date">${new Date(search.timestamp).toLocaleString()}</div>
-                </div>
-            `).join('');
-        }
-
-        // Load search from archive
-        function loadSearch(query) {
-            // Parse the archived search query format: "location - genre - eventType"
-            const parts = query.split(' - ');
-            if (parts.length >= 1) {
-                document.getElementById('locationInput').value = parts[0];
-            }
-            if (parts.length >= 2 && parts[1] !== 'any') {
-                document.getElementById('genreSelect').value = parts[1];
-            }
-            if (parts.length >= 3 && parts[2] !== 'any') {
-                document.getElementById('eventTypeSelect').value = parts[2];
-            }
         }
 
         // Handle Enter key for location input
@@ -852,9 +1135,278 @@
             }
         });
 
+        // New function to display results separated by events and news
+        function displaySeparatedResults(data) {
+            const events = data.events || data.results || [];
+            const location = data.metadata?.location || data.location || 'Unknown Location';
+            
+            console.log('Displaying separated results:', { events: events.length, activeTab: currentActiveTab });
+            
+            if (!events || events.length === 0) {
+                const message = `<p style="text-align: center; color: #666;">No ${currentActiveTab} found for "${location}"</p>`;
+                document.getElementById(currentActiveTab + 'Results').innerHTML = message;
+                return;
+            }
+
+            // Get sorting and filtering preferences
+            const sortBy = document.getElementById('sortBy').value;
+            const focus = document.getElementById('eventFocus').value;
+
+            // Separate events from news
+            const liveEvents = events.filter(event => 
+                event.type !== 'news-event' && 
+                event.type !== 'news-style' &&
+                event.source !== 'NewsAPI'
+            );
+            
+            const newsEvents = events.filter(event => 
+                event.type === 'news-event' || 
+                event.type === 'news-style' ||
+                event.source === 'NewsAPI'
+            );
+
+            // Apply sorting and filtering
+            const sortedLiveEvents = sortEvents(filterEvents(liveEvents, focus), sortBy);
+            const sortedNewsEvents = sortEvents(filterEvents(newsEvents, focus), sortBy);
+
+            // Display based on active tab
+            if (currentActiveTab === 'events') {
+                displayEventsTab(sortedLiveEvents, data);
+            } else {
+                displayNewsTab(sortedNewsEvents, data);
+            }
+        }
+
+        // Display live events tab
+        function displayEventsTab(events, originalData) {
+            const location = originalData.metadata?.location || originalData.location || 'Unknown Location';
+            const genre = originalData.metadata?.genre || originalData.genre || '';
+
+            const header = `
+                <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-radius: 10px;">
+                    <p style="color: var(--cyber-blue); font-weight: bold;">
+                        🎪 Found ${events.length} live events in ${location}
+                        ${genre ? ` • ${genre}` : ''}
+                    </p>
+                    <p style="color: #888; font-size: 0.9rem;">
+                        Live Events • Sorted by ${document.getElementById('sortBy').value}
+                    </p>
+                </div>
+            `;
+
+            const eventsHTML = events.slice(0, 20).map(event => `
+                <div class="result-item" style="background: rgba(0, 255, 255, 0.05); border: 1px solid var(--cyber-blue); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div class="result-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <h3 style="color: var(--cyber-blue); margin: 0; flex-grow: 1;">${event.title}</h3>
+                        <div style="text-align: right; margin-left: 15px;">
+                            <span style="background: var(--cyber-green); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">${event.source || 'EVENT'}</span>
+                            ${event.category ? `<br><span style="color: var(--cyber-orange); font-size: 0.8rem;">${event.category}</span>` : ''}
+                            ${event.isFree ? `<br><span style="color: var(--cyber-green); font-size: 0.8rem;">FREE</span>` : ''}
+                        </div>
+                    </div>
+                    <p style="color: #ccc; margin: 10px 0;">${event.description || 'Event details coming soon'}</p>
+                    
+                    <!-- Enhanced Location Information -->
+                    <div style="background: rgba(0, 255, 0, 0.1); border: 1px solid var(--cyber-green); border-radius: 5px; padding: 10px; margin: 10px 0;">
+                        ${event.venue ? `<div style="color: var(--cyber-green); font-weight: bold; margin-bottom: 5px;">🏢 ${event.venue}</div>` : ''}
+                        <div style="color: var(--cyber-green); display: flex; align-items: center;">
+                            <span style="margin-right: 8px;">📍</span>
+                            <span style="font-family: monospace;">${event.address || event.location || location}</span>
+                        </div>
+                        ${event.coordinates ? `
+                            <div style="color: #888; font-size: 0.8rem; margin-top: 5px;">
+                                �️ ${event.coordinates.lat.toFixed(4)}, ${event.coordinates.lng.toFixed(4)}
+                                <a href="https://maps.google.com/?q=${event.coordinates.lat},${event.coordinates.lng}" target="_blank" style="color: var(--cyber-pink); margin-left: 10px;">View on Maps</a>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <div>
+                            ${event.date ? `<span style="color: var(--cyber-orange);">🗓️ ${new Date(event.date).toLocaleDateString()} at ${new Date(event.date).toLocaleTimeString()}</span><br>` : ''}
+                            ${event.attendees ? `<span style="color: var(--cyber-blue);">👥 ${event.attendees} attending</span>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            ${event.price && event.price !== 'Free' ? `<span style="color: var(--cyber-yellow);">💰 ${event.price}</span><br>` : ''}
+                            ${event.url ? `<a href="${event.url}" target="_blank" style="color: var(--cyber-pink); text-decoration: none;">View Event →</a>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('eventsResults').innerHTML = header + eventsHTML;
+        }
+
+        // Display news tab
+        function displayNewsTab(newsEvents, originalData) {
+            const location = originalData.metadata?.location || originalData.location || 'Unknown Location';
+
+            const header = `
+                <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(255, 165, 0, 0.1); border-radius: 10px;">
+                    <p style="color: var(--cyber-orange); font-weight: bold;">
+                        📰 Found ${newsEvents.length} event news articles for ${location}
+                    </p>
+                    <p style="color: #888; font-size: 0.9rem;">
+                        Event News & Announcements • Sorted by ${document.getElementById('sortBy').value}
+                    </p>
+                </div>
+            `;
+
+            const newsHTML = newsEvents.slice(0, 15).map(article => `
+                <div class="result-item" style="background: rgba(255, 165, 0, 0.05); border: 1px solid var(--cyber-orange); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div class="result-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <h3 style="color: var(--cyber-orange); margin: 0; flex-grow: 1;">${article.title}</h3>
+                        <div style="text-align: right; margin-left: 15px;">
+                            <span style="background: var(--cyber-orange); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">NEWS</span>
+                            ${article.publisher ? `<br><span style="color: var(--cyber-blue); font-size: 0.8rem;">${article.publisher}</span>` : ''}
+                        </div>
+                    </div>
+                    <p style="color: #ccc; margin: 10px 0;">${article.description || 'Event news and announcements'}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                        <div>
+                            <span style="color: var(--cyber-green);">📍 ${article.location || location}</span>
+                            ${article.date ? `<br><span style="color: var(--cyber-orange);">📅 ${new Date(article.date).toLocaleDateString()}</span>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            ${article.url ? `<a href="${article.url}" target="_blank" style="color: var(--cyber-pink); text-decoration: none;">Read Article →</a>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('newsResults').innerHTML = header + newsHTML;
+        }
+
+        // Sidebar Functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const burger = document.querySelector('.burger-menu');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.toggle('open');
+            burger.classList.toggle('open');
+            overlay.classList.toggle('open');
+            
+            if (sidebar.classList.contains('open')) {
+                loadSearchHistory();
+                updateStats();
+            }
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const burger = document.querySelector('.burger-menu');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.remove('open');
+            burger.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+
+        // Search History Management
+        function saveSearch(query, eventsCount, newsCount) {
+            const searches = getSearchHistory();
+            const newSearch = {
+                id: Date.now(),
+                query: query,
+                eventsCount: eventsCount,
+                newsCount: newsCount,
+                date: new Date().toISOString(),
+                timestamp: Date.now()
+            };
+            
+            searches.unshift(newSearch);
+            
+            // Keep only last 50 searches
+            if (searches.length > 50) {
+                searches.splice(50);
+            }
+            
+            localStorage.setItem('prospectorSearchHistory', JSON.stringify(searches));
+        }
+
+        function getSearchHistory() {
+            const history = localStorage.getItem('prospectorSearchHistory');
+            return history ? JSON.parse(history) : [];
+        }
+
+        function loadSearchHistory() {
+            const searches = getSearchHistory();
+            const historyContainer = document.getElementById('searchHistory');
+            
+            if (searches.length === 0) {
+                historyContainer.innerHTML = '<div style="color: #666; text-align: center; padding: 20px;">No searches yet</div>';
+                return;
+            }
+            
+            const historyHTML = searches.map(search => `
+                <div class="history-item">
+                    <div class="history-content" onclick="repeatSearch('${search.query}')">
+                        <div class="history-query">${search.query}</div>
+                        <div class="history-date">${new Date(search.date).toLocaleDateString()} ${new Date(search.date).toLocaleTimeString()}</div>
+                        <div class="history-results">📅 ${search.eventsCount} events • 📰 ${search.newsCount} news</div>
+                    </div>
+                    <div class="delete-btn" onclick="deleteHistoryItem(${search.id})" title="Delete this search">
+                        🗑️
+                    </div>
+                </div>
+            `).join('');
+            
+            historyContainer.innerHTML = historyHTML;
+        }
+
+        function updateStats() {
+            const searches = getSearchHistory();
+            const totalSearches = searches.length;
+            const totalEvents = searches.reduce((sum, search) => sum + search.eventsCount, 0);
+            const totalNews = searches.reduce((sum, search) => sum + search.newsCount, 0);
+            
+            document.getElementById('totalSearches').textContent = totalSearches;
+            document.getElementById('totalEvents').textContent = totalEvents;
+            document.getElementById('totalNews').textContent = totalNews;
+        }
+
+        function repeatSearch(query) {
+            document.getElementById('queryInput').value = query;
+            closeSidebar();
+            search();
+        }
+
+        function deleteHistoryItem(searchId) {
+            const searches = getSearchHistory();
+            const updatedSearches = searches.filter(search => search.id !== searchId);
+            localStorage.setItem('prospectorSearchHistory', JSON.stringify(updatedSearches));
+            loadSearchHistory();
+            updateStats();
+        }
+
+        function clearSearchHistory() {
+            if (confirm('Are you sure you want to clear all search history?')) {
+                localStorage.removeItem('prospectorSearchHistory');
+                loadSearchHistory();
+                updateStats();
+            }
+        }
+
         // Initialize
         createParticles();
-        loadArchive();
+        
+        // Add some sample history if none exists
+        const existingHistory = getSearchHistory();
+        if (existingHistory.length === 0) {
+            // Add sample searches to demonstrate the feature
+            const sampleSearches = [
+                { query: "music festivals", eventsCount: 12, newsCount: 8 },
+                { query: "tech meetups", eventsCount: 7, newsCount: 5 },
+                { query: "food events", eventsCount: 15, newsCount: 3 }
+            ];
+            
+            sampleSearches.forEach((search, index) => {
+                const date = new Date();
+                date.setHours(date.getHours() - (index + 1));
+                saveSearch(search.query, search.eventsCount, search.newsCount);
+            });
+        }
     </script>
 </body>
 </html>

@@ -118,8 +118,7 @@ export async function scrapeUrl(url: string): Promise<ScrapedContent> {
         'Connection': 'close', // Prevent connection reuse
       },
       signal: controller.signal,
-      redirect: 'follow',
-      follow: 5, // Limit redirects
+      redirect: 'follow'
     });
 
     clearTimeout(timeoutId);

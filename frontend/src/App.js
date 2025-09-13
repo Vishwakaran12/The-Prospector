@@ -13,9 +13,11 @@ function App() {
       <div className="App min-h-screen bg-gradient-to-b from-desert-sand to-amber-100">
         <nav className="bg-western-brown text-gold p-4 shadow-lg border-b-4 border-copper">
           <div className="container mx-auto flex items-center justify-between">
-            <h1 className="text-3xl font-western font-bold">🤠 The Prospector</h1>
-            <div className="text-sm font-saloon">
-              "Strike gold in the digital frontier!"
+            <h1 className="text-3xl font-western font-bold cursor-pointer" onClick={() => window.location.href = '/'}>🤠 The Prospector</h1>
+            <div className="flex gap-4 text-sm font-saloon">
+              <a href="/prospector" className="hover:text-amber-300">🔍 Smart Prospector</a>
+              <a href="/debug" className="hover:text-amber-300">🛠️ Debug</a>
+              <span>"Strike gold in the digital frontier!"</span>
             </div>
           </div>
         </nav>

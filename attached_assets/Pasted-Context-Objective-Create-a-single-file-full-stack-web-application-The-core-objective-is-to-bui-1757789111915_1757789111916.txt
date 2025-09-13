@@ -1,0 +1,52 @@
+Context & Objective:
+
+Create a single-file, full-stack web application. The core objective is to build a prototype for a "Digital Prospecting Tool" for gamers, named "The Prospector." The app should allow a user to input a search query and display mock search results. This project is for the "Wild West of Innovation" hackathon, and the theme should be integrated throughout.
+
+File:
+A single index.html file containing all HTML, CSS, and JavaScript.
+
+Design & Thematic Requirements:
+
+Visuals: The app should have a rustic, Wild West-inspired aesthetic.
+
+Color Palette: Use a dark, earthy color scheme. The background should be a dark wood texture. A rustic gold color (#d4b58e) should be used for highlights, borders, and text.
+
+Typography: The main title, "The Prospector," should use a Western-style font like "Creepster." All other text should be clean and readable, using a sans-serif font like "Lato."
+
+Layout: The entire app content should be centered on the page within a semi-transparent dark container with a thick, gold border.
+
+Styling: Use Tailwind CSS for all styling. All buttons, input fields, and result cards should have rounded-full or rounded-xl classes, along with subtle shadow-lg and transition effects.
+
+UI Components:
+
+Header: A prominent header with the main title "The Prospector" and a subtitle "Find your digital gold." The subtitle should have dotted gold borders above and below.
+
+Input Field: A single text input field with a placeholder "What are you prospecting for?" It should be styled with a gold border.
+
+Button: A gold "Prospect!" button next to the input field.
+
+Results Section: A main content area to display the search results in a responsive grid (grid-cols-1 md:grid-cols-2 lg:grid-cols-3).
+
+Loading State: A spinning SVG icon with the text "Prospecting for gold nuggets..." that appears when a search is initiated.
+
+Empty State: A message that says "No gold nuggets found. Try a new claim!" when a search yields no results.
+
+Functionality (JavaScript):
+
+Single File: All JavaScript must be within a <script> tag in the index.html file.
+
+Event Listeners: The app should listen for clicks on the "Prospect!" button.
+
+Mock API Function: Create an async function mockGeminiApi(query) that simulates an API call.
+
+Inside this function, use await new Promise(resolve => setTimeout(resolve, 1500)) to simulate network latency.
+
+Use if/else or a switch statement to return different sets of mock JSON data based on the query. For example, a query containing "space" returns a list of space-themed games, a query with "puzzle" returns a list of puzzle games, and a default case can return a list of general games.
+
+Result Rendering: The JavaScript should take the mock JSON response and dynamically create HTML cards for each "find." Each card should be a distinct element with a gold border and include the title, rating, and description from the mock data.
+
+User Interaction: Each card should have a "Stake a Claim" button.
+
+Error Handling: Include a basic try...catch block to handle potential errors during the "API" call and display an error message.
+
+Final Output: A single index.html file that is a complete, self-contained, and fully runnable web application prototype. The code should be clean, well-commented, and ready for use in a hackathon setting.

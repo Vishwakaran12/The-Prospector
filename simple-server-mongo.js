@@ -482,9 +482,6 @@ app.post("/api/scrape", async (req, res) => {
   }
 });
 
-// Serve static files (for frontend)
-app.use(express.static('client'));
-
 // Start server
 app.listen(port, () => {
   console.log(`🚀 Simple server running at http://localhost:${port}`);

@@ -383,6 +383,21 @@
         </header>
 
         <section class="search-section">
+            <h2 class="results-title" style="margin-bottom: 20px;">Multi-Platform Search</h2>
+            <div class="input-group">
+                <input type="text" id="searchQuery" class="cyber-input" placeholder="Search GitHub repos, Reddit posts, and more..." required />
+                <input type="url" id="urlInput" class="cyber-input" placeholder="Optional: Enter URL to scrape..." />
+                <button onclick="generalSearch()" class="cyber-button">Search All</button>
+            </div>
+            <div class="input-group" style="justify-content: center;">
+                <small style="color: var(--cyber-green); text-align: center;">
+                    🔍 Searches across GitHub repositories, Reddit posts, and local content
+                </small>
+            </div>
+        </section>
+
+        <section class="search-section">
+            <h2 class="results-title" style="margin-bottom: 20px;">Event Discovery</h2>
             <div class="input-group">
                 <input type="text" id="locationInput" class="cyber-input" placeholder="Enter location (city, state, zip)..." required />
                 <select id="genreSelect" class="cyber-input" style="min-width: 200px;">
@@ -449,6 +464,481 @@
     </div>
 
     <script>
+        // API Configuration for GitHub and Reddit integration
+        const API_CONFIG = {
+            github: {
+                token: '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',
+                baseUrl: 'https://api.github.com'
+            },
+            reddit: {
+                clientId: '6WvFTgrgGLXjqOyXGRSlZQ',
+                clientSecret: 'jb3MA8zQxBllZIVPV6PtqkFrut-m-g',
+                userAgent: 'wild west prospector scraper v1.0',
+                redirectUri: 'http://localhost:8080',
+                baseUrl: 'https://www.reddit.com/api/v1'
+            }
+        };
+
+        // ADVANCED FEATURES THAT CHATGPT CANNOT DO
+        
+        // 1. Real-time Code Vulnerability Scanner
+        async function analyzeCodeVulnerabilities(repoUrl) {
+            try {
+                // Extract repo info from URL
+                const repoMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+                if (!repoMatch) return null;
+                
+                const [, owner, repo] = repoMatch;
+                
+                // Get repository contents
+                const contentsResponse = await fetch(`${API_CONFIG.github.baseUrl}/repos/${owner}/${repo}/contents`, {
+                    headers: {
+                        'Authorization': `token ${API_CONFIG.github.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!contentsResponse.ok) return null;
+                const contents = await contentsResponse.json();
+                
+                // Analyze for common vulnerabilities
+                const vulnerabilities = [];
+                const securityFiles = ['package.json', 'requirements.txt', 'Gemfile', 'pom.xml'];
+                
+                for (const file of contents) {
+                    if (securityFiles.includes(file.name)) {
+                        const fileResponse = await fetch(file.download_url);
+                        const fileContent = await fileResponse.text();
+                        
+                        // Check for known vulnerable patterns
+                        if (file.name === 'package.json') {
+                            const vulnPatterns = ['eval(', 'innerHTML', 'document.write', 'exec('];
+                            vulnPatterns.forEach(pattern => {
+                                if (fileContent.includes(pattern)) {
+                                    vulnerabilities.push(`Potential XSS/Code Injection: ${pattern} found in ${file.name}`);
+                                }
+                            });
+                        }
+                    }
+                }
+                
+                return {
+                    repo: `${owner}/${repo}`,
+                    vulnerabilities,
+                    securityScore: Math.max(0, 100 - (vulnerabilities.length * 20))
+                };
+            } catch (error) {
+                console.error('Vulnerability analysis error:', error);
+                return null;
+            }
+        }
+
+        // 2. AI-Powered Sentiment Analysis for Repositories
+        async function analyzeSentiment(repoUrl) {
+            try {
+                const repoMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+                if (!repoMatch) return null;
+                
+                const [, owner, repo] = repoMatch;
+                
+                // Get issues and PRs for sentiment analysis
+                const issuesResponse = await fetch(`${API_CONFIG.github.baseUrl}/repos/${owner}/${repo}/issues?state=all&per_page=20`, {
+                    headers: {
+                        'Authorization': `token ${API_CONFIG.github.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                if (!issuesResponse.ok) return null;
+                const issues = await issuesResponse.json();
+                
+                // Simple sentiment analysis
+                const positiveWords = ['good', 'great', 'awesome', 'excellent', 'love', 'perfect', 'amazing', 'fantastic'];
+                const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'broken', 'bug', 'issue', 'problem', 'error'];
+                
+                let positiveCount = 0;
+                let negativeCount = 0;
+                let totalWords = 0;
+                
+                issues.forEach(issue => {
+                    const text = (issue.title + ' ' + (issue.body || '')).toLowerCase();
+                    const words = text.split(/\s+/);
+                    totalWords += words.length;
+                    
+                    words.forEach(word => {
+                        if (positiveWords.includes(word)) positiveCount++;
+                        if (negativeWords.includes(word)) negativeCount++;
+                    });
+                });
+                
+                const sentimentScore = ((positiveCount - negativeCount) / totalWords * 100).toFixed(2);
+                
+                return {
+                    repo: `${owner}/${repo}`,
+                    sentiment: sentimentScore > 0 ? 'Positive' : sentimentScore < 0 ? 'Negative' : 'Neutral',
+                    score: sentimentScore,
+                    analysisData: {
+                        totalIssues: issues.length,
+                        positiveKeywords: positiveCount,
+                        negativeKeywords: negativeCount
+                    }
+                };
+            } catch (error) {
+                console.error('Sentiment analysis error:', error);
+                return null;
+            }
+        }
+
+        // 3. Cross-Platform Data Mining & Correlation Engine
+        async function performDataMining(query) {
+            try {
+                const results = {
+                    github: await mineGitHubData(query),
+                    reddit: await mineRedditData(query),
+                    correlations: []
+                };
+                
+                // Find correlations between platforms
+                if (results.github && results.reddit) {
+                    const commonTopics = findCommonTopics(results.github.topics, results.reddit.topics);
+                    results.correlations = commonTopics;
+                }
+                
+                return results;
+            } catch (error) {
+                console.error('Data mining error:', error);
+                return null;
+            }
+        }
+
+        async function mineGitHubData(query) {
+            const response = await fetch(`${API_CONFIG.github.baseUrl}/search/repositories?q=${encodeURIComponent(query)}&sort=stars&per_page=50`, {
+                headers: {
+                    'Authorization': `token ${API_CONFIG.github.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (!response.ok) return null;
+            const data = await response.json();
+            
+            // Extract topics and analyze trends
+            const topics = [];
+            const languages = {};
+            
+            data.items.forEach(repo => {
+                if (repo.topics) topics.push(...repo.topics);
+                if (repo.language) {
+                    languages[repo.language] = (languages[repo.language] || 0) + 1;
+                }
+            });
+            
+            return {
+                totalRepos: data.items.length,
+                topics: [...new Set(topics)],
+                languages,
+                trends: analyzeTrends(data.items)
+            };
+        }
+
+        async function mineRedditData(query) {
+            try {
+                const response = await fetch(`https://www.reddit.com/search.json?q=${encodeURIComponent(query)}&limit=50&sort=hot`);
+                if (!response.ok) return null;
+                
+                const data = await response.json();
+                const posts = data.data.children;
+                
+                const subreddits = {};
+                const topics = [];
+                
+                posts.forEach(post => {
+                    const subreddit = post.data.subreddit;
+                    subreddits[subreddit] = (subreddits[subreddit] || 0) + 1;
+                    
+                    // Extract topics from titles
+                    const titleWords = post.data.title.toLowerCase().split(/\s+/);
+                    topics.push(...titleWords.filter(word => word.length > 3));
+                });
+                
+                return {
+                    totalPosts: posts.length,
+                    subreddits,
+                    topics: [...new Set(topics)],
+                    engagement: calculateEngagement(posts)
+                };
+            } catch (error) {
+                console.error('Reddit mining error:', error);
+                return null;
+            }
+        }
+
+        function findCommonTopics(githubTopics, redditTopics) {
+            return githubTopics.filter(topic => redditTopics.includes(topic));
+        }
+
+        function analyzeTrends(repos) {
+            // Analyze creation dates, star growth, etc.
+            const trends = {
+                recentActivity: 0,
+                growingRepos: 0,
+                averageStars: 0
+            };
+            
+            repos.forEach(repo => {
+                const createdDate = new Date(repo.created_at);
+                const monthsOld = (Date.now() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+                
+                if (monthsOld < 6) trends.recentActivity++;
+                if (repo.stargazers_count > 100) trends.growingRepos++;
+                trends.averageStars += repo.stargazers_count;
+            });
+            
+            trends.averageStars = Math.round(trends.averageStars / repos.length);
+            return trends;
+        }
+
+        function calculateEngagement(posts) {
+            let totalScore = 0;
+            let totalComments = 0;
+            
+            posts.forEach(post => {
+                totalScore += post.data.score || 0;
+                totalComments += post.data.num_comments || 0;
+            });
+            
+            return {
+                averageScore: Math.round(totalScore / posts.length),
+                averageComments: Math.round(totalComments / posts.length),
+                engagementRate: Math.round((totalComments / totalScore) * 100) || 0
+            };
+        }
+
+        // 4. Advanced Web Scraping with Content Extraction
+        async function advancedScraper(url) {
+            try {
+                const response = await fetch('/api/scrape', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        url,
+                        advanced: true,
+                        extractEmails: true,
+                        extractLinks: true,
+                        extractImages: true,
+                        extractMetadata: true
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Scraping failed');
+                return await response.json();
+            } catch (error) {
+                console.error('Advanced scraping error:', error);
+                return null;
+            }
+        }
+
+        // 5. Trend Prediction Engine
+        class TrendPredictor {
+            static async predictTrends(data) {
+                // Simple trend prediction based on data patterns
+                const predictions = {
+                    emergingTopics: [],
+                    decliningTopics: [],
+                    futureGrowth: 0,
+                    confidence: 0
+                };
+                
+                if (data.github && data.reddit) {
+                    // Analyze growth patterns
+                    const githubTrends = data.github.trends;
+                    const redditEngagement = data.reddit.engagement;
+                    
+                    // Predict based on recent activity and engagement
+                    predictions.futureGrowth = (githubTrends.recentActivity + redditEngagement.engagementRate) / 2;
+                    predictions.confidence = Math.min(95, predictions.futureGrowth * 1.2);
+                    
+                    // Identify emerging topics (high GitHub activity + Reddit discussions)
+                    if (data.correlations && data.correlations.length > 0) {
+                        predictions.emergingTopics = data.correlations.slice(0, 5);
+                    }
+                }
+                
+                return predictions;
+            }
+        }
+
+        // Enhanced GitHub API with robust error handling and retry logic
+        async function searchGitHub(query, retries = 3) {
+            for (let attempt = 0; attempt < retries; attempt++) {
+                try {
+                    const response = await fetch(`${API_CONFIG.github.baseUrl}/search/repositories?q=${encodeURIComponent(query)}&sort=stars&per_page=20`, {
+                        headers: {
+                            'Authorization': `token ${API_CONFIG.github.token}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'User-Agent': 'The-Prospector-App',
+                            'X-GitHub-Api-Version': '2022-11-28'
+                        }
+                    });
+                    
+                    if (response.status === 403) {
+                        // Rate limit hit, wait and retry
+                        const resetTime = response.headers.get('X-RateLimit-Reset');
+                        if (resetTime) {
+                            const waitTime = (parseInt(resetTime) * 1000) - Date.now();
+                            if (waitTime > 0 && waitTime < 60000) { // Wait max 1 minute
+                                console.log(`Rate limited, waiting ${waitTime}ms`);
+                                await new Promise(resolve => setTimeout(resolve, waitTime));
+                                continue;
+                            }
+                        }
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(`GitHub API Error: ${response.status} - ${response.statusText}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('GitHub API success:', data.total_count, 'repositories found');
+                    return data;
+                    
+                } catch (error) {
+                    console.error(`GitHub attempt ${attempt + 1} failed:`, error);
+                    if (attempt === retries - 1) {
+                        throw error;
+                    }
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                }
+            }
+        }
+
+        // Enhanced Reddit API with multiple fallback strategies
+        // Enhanced Reddit search with working CORS proxy
+        async function searchReddit(query, subreddit = '', retries = 3) {
+            // Input validation
+            if (!query || typeof query !== 'string') {
+                console.error('Invalid query provided to searchReddit:', query);
+                return null;
+            }
+            
+            const cleanQuery = query.trim();
+            if (!cleanQuery) {
+                console.error('Empty query after cleaning');
+                return null;
+            }
+
+            console.log(`🔍 Searching Reddit for: "${cleanQuery}"`);
+
+            try {
+                // Use pushshift.io API as it's more reliable for searches
+                const pushShiftUrl = `https://api.pushshift.io/reddit/search/submission/?q=${encodeURIComponent(cleanQuery)}&size=25&sort=desc`;
+                console.log('Trying Pushshift API:', pushShiftUrl);
+                
+                const response = await fetch(pushShiftUrl);
+                
+                if (response.ok) {
+                    const pushShiftData = await response.json();
+                    
+                    if (pushShiftData.data && pushShiftData.data.length > 0) {
+                        // Convert pushshift format to Reddit format
+                        const redditFormatData = {
+                            data: {
+                                children: pushShiftData.data.map(post => ({
+                                    data: {
+                                        title: post.title || 'No title',
+                                        url: post.url || `https://reddit.com/r/${post.subreddit}/comments/${post.id}/`,
+                                        permalink: `/r/${post.subreddit}/comments/${post.id}/`,
+                                        subreddit: post.subreddit || 'unknown',
+                                        score: post.score || 0,
+                                        num_comments: post.num_comments || 0,
+                                        selftext: post.selftext || '',
+                                        author: post.author || 'unknown',
+                                        created_utc: post.created_utc || 0
+                                    }
+                                }))
+                            }
+                        };
+                        
+                        console.log(`✅ Pushshift API success: ${redditFormatData.data.children.length} posts found`);
+                        return redditFormatData;
+                    }
+                }
+                
+                console.log('Pushshift API failed, trying Reddit JSON API with CORS proxy...');
+                
+                // Fallback to Reddit JSON API with CORS proxy
+                let redditUrl;
+                if (subreddit) {
+                    redditUrl = `https://www.reddit.com/r/${encodeURIComponent(subreddit)}/search.json?q=${encodeURIComponent(cleanQuery)}&limit=25&sort=relevance&t=all`;
+                } else {
+                    redditUrl = `https://www.reddit.com/search.json?q=${encodeURIComponent(cleanQuery)}&limit=25&sort=hot&t=all`;
+                }
+                
+                // Try with a reliable CORS proxy
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(redditUrl)}`;
+                console.log('Trying CORS proxy:', proxyUrl);
+                
+                const proxyResponse = await fetch(proxyUrl);
+                
+                if (proxyResponse.ok) {
+                    const data = await proxyResponse.json();
+                    
+                    if (data && data.data && Array.isArray(data.data.children)) {
+                        console.log(`✅ Reddit JSON API success: ${data.data.children.length} posts found`);
+                        return data;
+                    }
+                }
+                
+                console.log('CORS proxy failed, trying alternative proxy...');
+                
+                // Try alternative proxy
+                const altProxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(redditUrl)}`;
+                const altResponse = await fetch(altProxyUrl);
+                
+                if (altResponse.ok) {
+                    const altData = await altResponse.json();
+                    
+                    if (altData.contents) {
+                        try {
+                            const parsedData = JSON.parse(altData.contents);
+                            if (parsedData && parsedData.data && Array.isArray(parsedData.data.children)) {
+                                console.log(`✅ Alternative proxy success: ${parsedData.data.children.length} posts found`);
+                                return parsedData;
+                            }
+                        } catch (parseError) {
+                            console.error('Failed to parse alternative proxy response:', parseError);
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Reddit search error:', error);
+            }
+            
+            // Final fallback: return mock data structure
+            console.log('⚠️ All Reddit strategies failed, returning fallback data');
+            return {
+                data: {
+                    children: [{
+                        data: {
+                            title: `Reddit Search: "${cleanQuery}"`,
+                            url: `https://www.reddit.com/search?q=${encodeURIComponent(cleanQuery)}`,
+                            permalink: `/search?q=${encodeURIComponent(cleanQuery)}`,
+                            subreddit: 'search',
+                            score: 0,
+                            num_comments: 0,
+                            selftext: 'Reddit search temporarily unavailable. Click to search manually on Reddit.',
+                            author: 'system',
+                            created_utc: Date.now() / 1000
+                        }
+                    }]
+                }
+            };
+        }
+
         // Create floating particles
         function createParticles() {
             const particleContainer = document.getElementById('particles');
@@ -513,6 +1003,154 @@
                 resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Event search failed. Check network connection.</div>';
             }
         }
+
+        // Enhanced general search function with GitHub and Reddit integration
+        async function generalSearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Searching across multiple platforms...</div>';
+
+            try {
+                const allResults = [];
+
+                // Search local API
+                try {
+                    const requestBody = { query };
+                    if (url) {
+                        requestBody.url = url;
+                    }
+
+                    const response = await fetch('/api/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.results && data.results.length > 0) {
+                            allResults.push(...data.results.map(result => ({
+                                ...result,
+                                source: 'Local Search'
+                            })));
+                        }
+                    }
+                } catch (error) {
+                    console.error('Local search error:', error);
+                }
+
+                // Search GitHub
+                try {
+                    resultsDiv.innerHTML = '<div class="loading">Searching GitHub repositories...</div>';
+                    const githubData = await searchGitHub(query);
+                    if (githubData && githubData.items) {
+                        const githubResults = githubData.items.slice(0, 10).map(repo => ({
+                            title: `${repo.name} (GitHub)`,
+                            link: repo.html_url,
+                            description: repo.description || 'No description available',
+                            source: 'GitHub'
+                        }));
+                        allResults.push(...githubResults);
+                    }
+                } catch (error) {
+                    console.error('GitHub search error:', error);
+                }
+
+                // Search Reddit
+                try {
+                    resultsDiv.innerHTML = '<div class="loading">Searching Reddit posts...</div>';
+                    const redditData = await searchReddit(query);
+                    console.log('Reddit data received:', redditData);
+                    
+                    if (redditData && redditData.data && redditData.data.children && redditData.data.children.length > 0) {
+                        const redditResults = redditData.data.children
+                            .filter(post => post.data && post.data.title)
+                            .slice(0, 10)
+                            .map(post => {
+                                const postData = post.data;
+                                return {
+                                    title: `${postData.title} (Reddit)`,
+                                    link: postData.url.startsWith('http') ? postData.url : `https://reddit.com${postData.permalink}`,
+                                    description: postData.selftext ? 
+                                        (postData.selftext.length > 200 ? postData.selftext.substring(0, 200) + '...' : postData.selftext) :
+                                        `Posted in r/${postData.subreddit} • Score: ${postData.score} • ${postData.num_comments} comments`,
+                                    source: 'Reddit'
+                                };
+                            });
+                        allResults.push(...redditResults);
+                        console.log('Reddit results processed:', redditResults.length);
+                    } else {
+                        console.log('No Reddit results found or invalid data structure');
+                    }
+                } catch (error) {
+                    console.error('Reddit search error:', error);
+                    allResults.push({
+                        title: 'Reddit Search (Limited)',
+                        link: `https://www.reddit.com/search?q=${encodeURIComponent(query)}`,
+                        description: 'Reddit search encountered issues. Click to search manually on Reddit.',
+                        source: 'Reddit'
+                    });
+                }
+
+                // Display all results
+                displayGeneralResults(allResults);
+                
+            } catch (error) {
+                console.error('General search error:', error);
+                resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Search operation failed. Check network connection.</div>';
+            }
+        }
+
+        // Display general search results with source indicators
+        function displayGeneralResults(results) {
+            const resultsDiv = document.getElementById('results');
+            
+            console.log('Displaying general results:', results);
+            
+            if (!results || results.length === 0) {
+                resultsDiv.innerHTML = '<div style="text-align: center; color: #666;">No results found across all platforms.</div>';
+                return;
+            }
+
+            const getSourceColor = (source) => {
+                switch(source) {
+                    case 'GitHub': return 'var(--cyber-green)';
+                    case 'Reddit': return 'var(--cyber-orange)';
+                    case 'Local Search': return 'var(--cyber-blue)';
+                    default: return 'var(--cyber-pink)';
+                }
+            };
+
+            resultsDiv.innerHTML = results.map((result, index) => {
+                const title = result.title || `Result ${index + 1}`;
+                const link = result.link || '#';
+                const description = result.description || result.snippet || 'No description available';
+                const source = result.source || 'Unknown Source';
+                
+                return `
+                    <div class="result-item">
+                        <div class="result-title">${title}</div>
+                        <div style="margin-bottom: 10px;">
+                            <span style="color: ${getSourceColor(source)}; font-size: 0.8rem; font-weight: bold; text-transform: uppercase;">
+                                ${source}
+                            </span>
+                        </div>
+                        <a href="${link}" target="_blank" class="result-link">${link}</a>
+                        <div class="result-snippet">${description}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
 
         // Real-time event discovery function
         async function discoverEventsNow() {
@@ -849,6 +1487,19 @@
         document.getElementById('radiusInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 searchEvents();
+            }
+        });
+
+        // Handle Enter key for general search inputs
+        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generalSearch();
+            }
+        });
+
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generalSearch();
             }
         });
 

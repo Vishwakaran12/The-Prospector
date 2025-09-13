@@ -458,26 +458,30 @@
             }
         }
 
-        // Search function
-        async function search() {
-            const query = document.getElementById('searchQuery').value;
-            const url = document.getElementById('urlInput').value;
+        // Event search function
+        async function searchEvents() {
+            const location = document.getElementById('locationInput').value.trim();
+            const genre = document.getElementById('genreSelect').value;
+            const eventType = document.getElementById('eventTypeSelect').value;
+            const radius = document.getElementById('radiusInput').value || 25;
             
-            if (!query.trim()) {
-                alert('Please enter a search query');
+            if (!location) {
+                alert('Please enter a location');
                 return;
             }
 
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="loading">Processing search request...</div>';
+            resultsDiv.innerHTML = '<div class="loading">Scanning for community events...</div>';
 
             try {
-                const requestBody = { query };
-                if (url.trim()) {
-                    requestBody.url = url;
-                }
+                const requestBody = { 
+                    location, 
+                    genre: genre || undefined, 
+                    eventType: eventType || undefined, 
+                    radius: parseInt(radius) 
+                };
 
-                const response = await fetch('/api/search', {
+                const response = await fetch('/api/search-events', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -490,37 +494,127 @@
                 }
 
                 const data = await response.json();
-                displayResults(data.results || []);
-                loadArchive(); // Refresh archive
+                displayEventResults(data.results || [], data);
+                
+                // Save the search
+                await saveEventSearch(data);
+                loadArchive();
             } catch (error) {
-                console.error('Search error:', error);
-                resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Search operation failed. Check network connection.</div>';
+                console.error('Event search error:', error);
+                resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Event search failed. Check network connection.</div>';
             }
         }
 
-        // Display search results
-        function displayResults(results) {
+        // Display event search results
+        function displayEventResults(results, searchData) {
             const resultsDiv = document.getElementById('results');
             
             if (!results || results.length === 0) {
-                resultsDiv.innerHTML = '<div style="text-align: center; color: #666;">No results found.</div>';
+                resultsDiv.innerHTML = `
+                    <div style="text-align: center; color: #666;">
+                        <p>No events found for "${searchData.location}"</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Try adjusting your search criteria or expanding the radius.</p>
+                    </div>`;
                 return;
             }
 
-            resultsDiv.innerHTML = results.map(result => `
-                <div class="result-item">
-                    <div class="result-title">${result.title || 'No Title'}</div>
-                    <a href="${result.link}" target="_blank" class="result-link">${result.link}</a>
-                    <div class="result-snippet">${result.snippet || 'No description available'}</div>
+            const header = `
+                <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-radius: 10px;">
+                    <p style="color: var(--cyber-blue); font-weight: bold;">
+                        Found ${results.length} events in ${searchData.location}
+                        ${searchData.genre && searchData.genre !== 'any' ? ` • ${searchData.genre}` : ''}
+                        ${searchData.eventType && searchData.eventType !== 'any' ? ` • ${searchData.eventType}` : ''}
+                    </p>
+                    <p style="color: #888; font-size: 0.9rem;">Radius: ${searchData.radius} miles</p>
+                </div>
+            `;
+
+            resultsDiv.innerHTML = header + results.map(result => `
+                <div class="result-item" style="border-left: 4px solid ${getEventTypeColor(result.eventType)};">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
+                        <div class="result-title">${result.title || 'Event'}</div>
+                        <div style="display: flex; gap: 10px;">
+                            <span style="background: ${getEventTypeColor(result.eventType)}; color: black; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">
+                                ${result.source}
+                            </span>
+                            <span style="background: var(--cyber-purple); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem;">
+                                ${result.eventType}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="${result.url}" target="_blank" class="result-link">${result.url}</a>
+                    <div class="result-snippet">${result.description}</div>
+                    ${result.genre ? `<div style="color: var(--cyber-green); font-size: 0.8rem; margin-top: 8px;">Genre: ${result.genre}</div>` : ''}
                 </div>
             `).join('');
+        }
+
+        // Get color for event type
+        function getEventTypeColor(type) {
+            const colors = {
+                'ticketed': '#ff6b00',
+                'community': '#00ff41', 
+                'social': '#ff0080',
+                'general': '#00ffff'
+            };
+            return colors[type] || '#00ffff';
+        }
+
+        // Save event search
+        async function saveEventSearch(searchData) {
+            try {
+                await fetch('/api/save-search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: `${searchData.location} - ${searchData.genre || 'any'} - ${searchData.eventType || 'any'}`,
+                        results: searchData.results
+                    })
+                });
+            } catch (error) {
+                console.error('Failed to save search:', error);
+            }
+        }
+
+        // Load nearby events using geolocation
+        async function loadNearbyEvents() {
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported by your browser');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Getting your location...</div>';
+
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                
+                // Use reverse geocoding or just use coordinates
+                document.getElementById('locationInput').value = `${lat.toFixed(2)}, ${lon.toFixed(2)}`;
+                
+                resultsDiv.innerHTML = '<div class="loading">Finding nearby events...</div>';
+                await searchEvents();
+            }, (error) => {
+                resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Location access denied. Please enter location manually.</div>';
+            });
+        }
+
+        // Legacy search function (fallback)
+        async function search() {
+            // Redirect to event search
+            await searchEvents();
         }
 
         // Clear results
         function clearResults() {
             document.getElementById('results').innerHTML = '<p style="text-align: center; color: #666;">Results cleared.</p>';
-            document.getElementById('searchQuery').value = '';
-            document.getElementById('urlInput').value = '';
+            document.getElementById('locationInput').value = '';
+            document.getElementById('genreSelect').value = '';
+            document.getElementById('eventTypeSelect').value = '';
+            document.getElementById('radiusInput').value = '25';
         }
 
         // Load archived searches
@@ -557,19 +651,30 @@
 
         // Load search from archive
         function loadSearch(query) {
-            document.getElementById('searchQuery').value = query;
+            // Parse the archived search query format: "location - genre - eventType"
+            const parts = query.split(' - ');
+            if (parts.length >= 1) {
+                document.getElementById('locationInput').value = parts[0];
+            }
+            if (parts.length >= 2 && parts[1] !== 'any') {
+                document.getElementById('genreSelect').value = parts[1];
+            }
+            if (parts.length >= 3 && parts[2] !== 'any') {
+                document.getElementById('eventTypeSelect').value = parts[2];
+            }
         }
 
-        // Handle Enter key
-        document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+        // Handle Enter key for location input
+        document.getElementById('locationInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                search();
+                searchEvents();
             }
         });
 
-        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+        // Handle Enter key for radius input
+        document.getElementById('radiusInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                search();
+                searchEvents();
             }
         });
 

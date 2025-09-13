@@ -417,12 +417,19 @@
                     <option value="sports">Sports Events</option>
                     <option value="volunteer">Volunteer Opportunities</option>
                 </select>
-                <input type="number" id="radiusInput" class="cyber-input" placeholder="Radius (miles)" value="25" min="1" max="100" style="max-width: 150px;" />
-                <button onclick="searchEvents()" class="cyber-button">Find Events</button>
+                <select id="timeframeSelect" class="cyber-input" style="min-width: 150px;">
+                    <option value="immediate">Happening Now</option>
+                    <option value="tonight">Tonight</option>
+                    <option value="upcoming">This Week</option>
+                    <option value="general">Any Time</option>
+                </select>
+                <input type="number" id="radiusInput" class="cyber-input" placeholder="Radius (miles)" value="25" min="1" max="100" style="max-width: 120px;" />
             </div>
             <div class="input-group">
-                <button onclick="clearResults()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-pink), var(--cyber-orange));">Clear Results</button>
-                <button onclick="loadNearbyEvents()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-purple), var(--cyber-blue));">Find Nearby</button>
+                <button onclick="searchEvents()" class="cyber-button">Find Events</button>
+                <button onclick="discoverEventsNow()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-orange), var(--cyber-pink));">Discover Now</button>
+                <button onclick="loadNearbyEvents()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-purple), var(--cyber-blue));">Use Location</button>
+                <button onclick="clearResults()" class="cyber-button" style="background: linear-gradient(45deg, var(--cyber-pink), var(--cyber-orange));">Clear</button>
             </div>
         </section>
 
@@ -458,11 +465,12 @@
             }
         }
 
-        // Event search function
+        // Enhanced event search function
         async function searchEvents() {
             const location = document.getElementById('locationInput').value.trim();
             const genre = document.getElementById('genreSelect').value;
             const eventType = document.getElementById('eventTypeSelect').value;
+            const timeframe = document.getElementById('timeframeSelect').value;
             const radius = document.getElementById('radiusInput').value || 25;
             
             if (!location) {
@@ -471,13 +479,14 @@
             }
 
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="loading">Scanning for community events...</div>';
+            resultsDiv.innerHTML = '<div class="loading">Scanning event networks...</div>';
 
             try {
                 const requestBody = { 
                     location, 
                     genre: genre || undefined, 
-                    eventType: eventType || undefined, 
+                    eventType: eventType || undefined,
+                    timeframe: timeframe || 'upcoming',
                     radius: parseInt(radius) 
                 };
 
@@ -494,7 +503,7 @@
                 }
 
                 const data = await response.json();
-                displayEventResults(data.results || [], data);
+                displayEnhancedResults(data);
                 
                 // Save the search
                 await saveEventSearch(data);
@@ -505,15 +514,64 @@
             }
         }
 
-        // Display event search results
-        function displayEventResults(results, searchData) {
+        // Real-time event discovery function
+        async function discoverEventsNow() {
+            const location = document.getElementById('locationInput').value.trim();
+            const radius = document.getElementById('radiusInput').value || 25;
+            
+            if (!location) {
+                alert('Please enter a location for real-time discovery');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">🔍 Discovering events happening now...</div>';
+
+            try {
+                const requestBody = { 
+                    location, 
+                    radius: parseInt(radius),
+                    urgent: true 
+                };
+
+                const response = await fetch('/api/discover-events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayRealTimeResults(data);
+                
+                // Save the discovery
+                await saveEventSearch({
+                    location: data.location,
+                    genre: 'real-time-discovery',
+                    eventType: 'immediate',
+                    results: data.results
+                });
+                loadArchive();
+            } catch (error) {
+                console.error('Real-time discovery error:', error);
+                resultsDiv.innerHTML = '<div style="color: var(--cyber-pink); text-align: center;">Real-time discovery failed. Check network connection.</div>';
+            }
+        }
+
+        // Display enhanced search results
+        function displayEnhancedResults(data) {
             const resultsDiv = document.getElementById('results');
             
-            if (!results || results.length === 0) {
+            if (!data.results || data.results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div style="text-align: center; color: #666;">
-                        <p>No events found for "${searchData.location}"</p>
-                        <p style="font-size: 0.9rem; margin-top: 10px;">Try adjusting your search criteria or expanding the radius.</p>
+                        <p>No events found for "${data.location}"</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Try adjusting your search criteria or using "Discover Now" for real-time results.</p>
                     </div>`;
                 return;
             }
@@ -521,32 +579,147 @@
             const header = `
                 <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(0, 255, 255, 0.1); border-radius: 10px;">
                     <p style="color: var(--cyber-blue); font-weight: bold;">
-                        Found ${results.length} events in ${searchData.location}
-                        ${searchData.genre && searchData.genre !== 'any' ? ` • ${searchData.genre}` : ''}
-                        ${searchData.eventType && searchData.eventType !== 'any' ? ` • ${searchData.eventType}` : ''}
+                        📍 Found ${data.total} events in ${data.location}
+                        ${data.genre && data.genre !== 'any' ? ` • ${data.genre}` : ''}
+                        ${data.eventType && data.eventType !== 'any' ? ` • ${data.eventType}` : ''}
                     </p>
-                    <p style="color: #888; font-size: 0.9rem;">Radius: ${searchData.radius} miles</p>
+                    <p style="color: #888; font-size: 0.9rem;">
+                        ${data.summary ? `Immediate: ${data.summary.immediate} | Upcoming: ${data.summary.upcoming} | Platforms: ${data.summary.platforms.length}` : ''}
+                    </p>
                 </div>
             `;
 
-            resultsDiv.innerHTML = header + results.map(result => `
-                <div class="result-item" style="border-left: 4px solid ${getEventTypeColor(result.eventType)};">
-                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 10px;">
-                        <div class="result-title">${result.title || 'Event'}</div>
-                        <div style="display: flex; gap: 10px;">
-                            <span style="background: ${getEventTypeColor(result.eventType)}; color: black; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold;">
-                                ${result.source}
+            // Group results by urgency
+            const categorizedHTML = generateCategorizedHTML(data.categorized || {}, data.results);
+
+            resultsDiv.innerHTML = header + categorizedHTML;
+        }
+
+        // Display real-time discovery results
+        function displayRealTimeResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            if (!data.results || data.results.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div style="text-align: center; color: #666;">
+                        <p>No immediate events found in "${data.location}"</p>
+                        <p style="font-size: 0.9rem; margin-top: 10px;">Try expanding your search radius or check back later.</p>
+                    </div>`;
+                return;
+            }
+
+            const header = `
+                <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: rgba(255, 107, 0, 0.2); border-radius: 10px; border: 2px solid var(--cyber-orange);">
+                    <p style="color: var(--cyber-orange); font-weight: bold; font-size: 1.1rem;">
+                        🚨 REAL-TIME DISCOVERY: ${data.location}
+                    </p>
+                    <p style="color: var(--cyber-blue);">
+                        Found ${data.summary.total} events • Immediate: ${data.summary.immediate} • Tonight: ${data.summary.tonight}
+                    </p>
+                    <p style="color: #888; font-size: 0.9rem;">
+                        Searched ${data.meta.queriesExecuted} sources • Confidence: ${(data.summary.avgConfidence * 100).toFixed(0)}%
+                    </p>
+                </div>
+            `;
+
+            // Group results by time relevance
+            const categorizedHTML = generateRealTimeCategorizedHTML(data.categorized, data.summary);
+
+            resultsDiv.innerHTML = header + categorizedHTML;
+        }
+
+        // Generate categorized HTML for enhanced results
+        function generateCategorizedHTML(categorized, allResults) {
+            let html = '';
+            
+            const categories = [
+                { key: 'immediate', title: '🔥 Happening Now', color: 'var(--cyber-orange)' },
+                { key: 'upcoming', title: '⚡ Coming Soon', color: 'var(--cyber-pink)' },
+                { key: 'general', title: '📅 General Events', color: 'var(--cyber-blue)' },
+                { key: 'reference', title: '📚 Event Directories', color: 'var(--cyber-purple)' }
+            ];
+
+            // Show categorized results if available
+            if (categorized && Object.keys(categorized).length > 0) {
+                categories.forEach(category => {
+                    const events = categorized[category.key] || [];
+                    if (events.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 25px;">
+                                <h3 style="color: ${category.color}; margin-bottom: 15px; font-family: 'Orbitron', monospace; border-bottom: 2px solid ${category.color}; padding-bottom: 5px;">
+                                    ${category.title} (${events.length})
+                                </h3>
+                                ${events.map(event => generateEventHTML(event)).join('')}
+                            </div>
+                        `;
+                    }
+                });
+            } else {
+                // Fallback to all results
+                html = allResults.map(event => generateEventHTML(event)).join('');
+            }
+
+            return html;
+        }
+
+        // Generate real-time categorized HTML
+        function generateRealTimeCategorizedHTML(categorized, summary) {
+            let html = '';
+            
+            const categories = [
+                { key: 'immediate', title: '🚨 RIGHT NOW', color: 'var(--cyber-orange)', urgent: true },
+                { key: 'tonight', title: '🌙 TONIGHT', color: 'var(--cyber-pink)', urgent: true },
+                { key: 'thisWeek', title: '📅 THIS WEEK', color: 'var(--cyber-blue)', urgent: false },
+                { key: 'ongoing', title: '🔄 ONGOING', color: 'var(--cyber-green)', urgent: false }
+            ];
+
+            categories.forEach(category => {
+                const events = categorized[category.key] || [];
+                if (events.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 25px;">
+                            <h3 style="color: ${category.color}; margin-bottom: 15px; font-family: 'Orbitron', monospace; border-bottom: 2px solid ${category.color}; padding-bottom: 5px; ${category.urgent ? 'animation: pulse 2s infinite;' : ''}">
+                                ${category.title} (${events.length})
+                            </h3>
+                            ${events.map(event => generateEventHTML(event, category.urgent)).join('')}
+                        </div>
+                    `;
+                }
+            });
+
+            return html;
+        }
+
+        // Generate individual event HTML
+        function generateEventHTML(event, isUrgent = false) {
+            const urgencyBorder = isUrgent ? '3px solid var(--cyber-orange)' : '1px solid var(--cyber-blue)';
+            const urgencyGlow = isUrgent ? 'box-shadow: 0 0 15px rgba(255, 107, 0, 0.5);' : '';
+            
+            return `
+                <div class="result-item" style="border-left: 4px solid ${getEventTypeColor(event.eventType)}; border: ${urgencyBorder}; ${urgencyGlow}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                        <div class="result-title" style="flex: 1;">${event.title || 'Event'}</div>
+                        <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                            <span style="background: ${getEventTypeColor(event.eventType)}; color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
+                                ${event.source}
                             </span>
-                            <span style="background: var(--cyber-purple); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem;">
-                                ${result.eventType}
+                            <span style="background: var(--cyber-purple); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">
+                                ${event.eventType}
                             </span>
+                            ${event.urgency === 'immediate' ? '<span style="background: var(--cyber-orange); color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; animation: pulse 1s infinite;">NOW</span>' : ''}
+                            ${event.confidence ? `<span style="background: var(--cyber-green); color: black; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">${(event.confidence * 100).toFixed(0)}%</span>` : ''}
                         </div>
                     </div>
-                    <a href="${result.url}" target="_blank" class="result-link">${result.url}</a>
-                    <div class="result-snippet">${result.description}</div>
-                    ${result.genre ? `<div style="color: var(--cyber-green); font-size: 0.8rem; margin-top: 8px;">Genre: ${result.genre}</div>` : ''}
+                    <a href="${event.url}" target="_blank" class="result-link">${event.url}</a>
+                    <div class="result-snippet">${event.description}</div>
+                    <div style="display: flex; gap: 15px; margin-top: 8px; font-size: 0.8rem;">
+                        ${event.category ? `<span style="color: var(--cyber-green);">📂 ${event.category}</span>` : ''}
+                        ${event.extractedDate ? `<span style="color: var(--cyber-blue);">📅 ${event.extractedDate}</span>` : ''}
+                        ${event.extractedTime ? `<span style="color: var(--cyber-pink);">🕐 ${event.extractedTime}</span>` : ''}
+                        ${event.urgency ? `<span style="color: var(--cyber-orange);">⚡ ${event.urgency}</span>` : ''}
+                    </div>
                 </div>
-            `).join('');
+            `;
         }
 
         // Get color for event type
@@ -614,6 +787,7 @@
             document.getElementById('locationInput').value = '';
             document.getElementById('genreSelect').value = '';
             document.getElementById('eventTypeSelect').value = '';
+            document.getElementById('timeframeSelect').value = 'upcoming';
             document.getElementById('radiusInput').value = '25';
         }
 

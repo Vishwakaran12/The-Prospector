@@ -3,6 +3,10 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import session from 'express-session';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import bcrypt from 'bcrypt';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -19,6 +23,7 @@ const PORT = process.env.PORT || 3000;
 let inMemorySearches = [];
 let useMongoDb = false;
 let SearchModel = null;
+let UserModel = null;
 
 // MongoDB Connection
 const connectToMongoDB = async () => {
@@ -33,19 +38,76 @@ const connectToMongoDB = async () => {
     const SearchResultSchema = new mongoose.Schema({
       title: { type: String, required: true },
       description: { type: String },
-      url: { type: String, required: true },
+      url: { type: String, required: false }, // Made optional since some results may not have URLs
       source: { type: String },
       metadata: { type: mongoose.Schema.Types.Mixed },
     });
 
     const SearchSchema = new mongoose.Schema({
       query: { type: String, required: true },
+      location: { type: String },
+      searchMode: { type: String, enum: ['events', 'news', 'social', 'github', 'reddit', 'auto'], default: 'auto' },
       results: { type: [SearchResultSchema], required: true },
+      resultCounts: {
+        events: { type: Number, default: 0 },
+        news: { type: Number, default: 0 },
+        github: { type: Number, default: 0 },
+        reddit: { type: Number, default: 0 },
+        total: { type: Number, default: 0 }
+      },
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // null for guest users
+      isPublic: { type: Boolean, default: false }, // for sharing searches
       createdAt: { type: Date, default: Date.now },
       timestamp: { type: String },
     });
 
     SearchModel = mongoose.model('Search', SearchSchema);
+    
+    // User Schema for Authentication
+    const UserSchema = new mongoose.Schema({
+      username: { type: String, required: true, unique: true, trim: true },
+      email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+      password: { type: String, required: true },
+      firstName: { type: String, trim: true },
+      lastName: { type: String, trim: true },
+      isActive: { type: Boolean, default: true },
+      lastLogin: { type: Date },
+      createdAt: { type: Date, default: Date.now },
+      preferences: {
+        defaultLocation: { type: String },
+        favoriteGenres: [{ type: String }],
+        emailNotifications: { type: Boolean, default: true }
+      }
+    });
+
+    // Password hashing middleware
+    UserSchema.pre('save', async function(next) {
+      if (!this.isModified('password')) return next();
+      
+      try {
+        const salt = await bcrypt.genSalt(12);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    // Password verification method
+    UserSchema.methods.comparePassword = async function(candidatePassword) {
+      return bcrypt.compare(candidatePassword, this.password);
+    };
+
+    // Remove password from JSON output
+    UserSchema.methods.toJSON = function() {
+      const user = this.toObject();
+      delete user.password;
+      return user;
+    };
+
+    const UserModel_temp = mongoose.model('User', UserSchema);
+    UserModel = UserModel_temp;
+    
     useMongoDb = true;
     
     console.log('🚀 MongoDB connected successfully!');
@@ -61,8 +123,102 @@ const connectToMongoDB = async () => {
 connectToMongoDB();
 
 // Enable CORS and JSON parsing
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+
+// Session configuration
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'prospector-cyberpunk-secret-key-2025',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true in production with HTTPS
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Passport configuration
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Local Strategy for username/password authentication
+passport.use(new LocalStrategy(
+  {
+    usernameField: 'username',
+    passwordField: 'password'
+  },
+  async (username, password, done) => {
+    try {
+      if (!useMongoDb) {
+        return done(null, false, { message: 'Authentication requires MongoDB connection' });
+      }
+
+      const user = await UserModel.findOne({ 
+        $or: [
+          { username: username },
+          { email: username }
+        ]
+      });
+
+      if (!user) {
+        return done(null, false, { message: 'Invalid username or password' });
+      }
+
+      if (!user.isActive) {
+        return done(null, false, { message: 'Account is deactivated' });
+      }
+
+      const isMatch = await user.comparePassword(password);
+      if (!isMatch) {
+        return done(null, false, { message: 'Invalid username or password' });
+      }
+
+      // Update last login
+      user.lastLogin = new Date();
+      await user.save();
+
+      return done(null, user);
+    } catch (error) {
+      return done(error);
+    }
+  }
+));
+
+// Serialize user for session
+passport.serializeUser((user, done) => {
+  done(null, user._id);
+});
+
+// Deserialize user from session
+passport.deserializeUser(async (id, done) => {
+  try {
+    if (!useMongoDb) {
+      return done(null, false);
+    }
+    const user = await UserModel.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: 'Authentication required' });
+};
+
+// Optional authentication middleware (allows both authenticated and guest users)
+const optionalAuth = (req, res, next) => {
+  // Always proceed, authentication is optional
+  next();
+};
 
 // Serve static files from current directory
 app.use(express.static(__dirname));
@@ -85,8 +241,314 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// ==================== AUTHENTICATION ROUTES ====================
+
+// Register new user
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    if (!useMongoDb) {
+      return res.status(503).json({ error: 'Authentication requires MongoDB connection' });
+    }
+
+    const { username, email, password, firstName, lastName } = req.body;
+
+    // Validation
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email, and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({
+      $or: [
+        { username: username },
+        { email: email }
+      ]
+    });
+
+    if (existingUser) {
+      return res.status(409).json({ 
+        error: existingUser.username === username ? 'Username already exists' : 'Email already exists'
+      });
+    }
+
+    // Create new user
+    const newUser = new UserModel({
+      username,
+      email,
+      password,
+      firstName,
+      lastName
+    });
+
+    await newUser.save();
+
+    // Log the user in automatically after registration
+    req.login(newUser, (err) => {
+      if (err) {
+        console.error('Login after registration failed:', err);
+        return res.status(500).json({ error: 'Registration successful but login failed' });
+      }
+
+      res.status(201).json({
+        message: 'User registered successfully',
+        user: newUser.toJSON()
+      });
+    });
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// Login user
+app.post('/api/auth/login', (req, res, next) => {
+  if (!useMongoDb) {
+    return res.status(503).json({ error: 'Authentication requires MongoDB connection' });
+  }
+
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      console.error('Authentication error:', err);
+      return res.status(500).json({ error: 'Authentication failed' });
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: info.message || 'Login failed' });
+    }
+
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Login error:', err);
+        return res.status(500).json({ error: 'Login failed' });
+      }
+
+      res.json({
+        message: 'Login successful',
+        user: user.toJSON()
+      });
+    });
+  })(req, res, next);
+});
+
+// Logout user
+app.post('/api/auth/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Session destroy error:', err);
+        return res.status(500).json({ error: 'Logout completed with errors' });
+      }
+
+      res.clearCookie('connect.sid');
+      res.json({ message: 'Logout successful' });
+    });
+  });
+});
+
+// Get current user
+app.get('/api/auth/me', (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  res.json({
+    user: req.user.toJSON(),
+    authenticated: true
+  });
+});
+
+// Update user profile
+app.put('/api/auth/profile', requireAuth, async (req, res) => {
+  try {
+    const { firstName, lastName, preferences } = req.body;
+    const userId = req.user._id;
+
+    const updateData = {};
+    if (firstName !== undefined) updateData.firstName = firstName;
+    if (lastName !== undefined) updateData.lastName = lastName;
+    if (preferences !== undefined) updateData.preferences = { ...req.user.preferences, ...preferences };
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      userId,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: updatedUser.toJSON()
+    });
+
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ error: 'Profile update failed' });
+  }
+});
+
+// Change password
+app.put('/api/auth/password', requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'New password must be at least 6 characters long' });
+    }
+
+    const user = await UserModel.findById(req.user._id);
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Password change failed' });
+  }
+});
+
+// ==================== END AUTHENTICATION ROUTES ====================
+
+// Test endpoint to create a demo user (remove in production)
+app.post('/api/test/create-demo-user', async (req, res) => {
+  try {
+    if (!useMongoDb) {
+      return res.status(503).json({ error: 'Authentication requires MongoDB connection' });
+    }
+
+    // Check if demo user already exists
+    const existingUser = await UserModel.findOne({ username: 'demo' });
+    if (existingUser) {
+      return res.json({ message: 'Demo user already exists', username: 'demo' });
+    }
+
+    // Create demo user
+    const demoUser = new UserModel({
+      username: 'demo',
+      email: 'demo@prospector.com',
+      password: 'demo123',
+      firstName: 'Demo',
+      lastName: 'User'
+    });
+
+    await demoUser.save();
+    res.json({ 
+      message: 'Demo user created successfully', 
+      username: 'demo',
+      password: 'demo123',
+      note: 'Use these credentials to test authentication'
+    });
+
+  } catch (error) {
+    console.error('Demo user creation error:', error);
+    res.status(500).json({ error: 'Failed to create demo user' });
+  }
+});
+
+// News search endpoint
+app.post('/api/search-news', optionalAuth, async (req, res) => {
+  try {
+    const { query, category, timeframe, source } = req.body;
+
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
+    console.log(`🔍 Searching news for: "${query}"${category ? ` in ${category}` : ''}${source ? ` from ${source}` : ''}`);
+
+    const newsApiKey = process.env.NEWS_API_KEY;
+    if (!newsApiKey) {
+      return res.status(500).json({ error: 'NewsAPI key not configured' });
+    }
+
+    // Build URL parameters
+    let newsUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sortBy=publishedAt&language=en&pageSize=20&apiKey=${newsApiKey}`;
+    
+    // Add category filter if specified
+    if (category) {
+      newsUrl += `&category=${category}`;
+    }
+    
+    // Add source filter if specified
+    if (source) {
+      newsUrl += `&sources=${source}`;
+    }
+    
+    // Add time filter if specified
+    if (timeframe) {
+      const now = new Date();
+      let fromDate;
+      
+      switch(timeframe) {
+        case 'today':
+          fromDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          break;
+        case 'week':
+          fromDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          fromDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+          break;
+      }
+      
+      if (fromDate) {
+        newsUrl += `&from=${fromDate.toISOString().split('T')[0]}`;
+      }
+    }
+    
+    const response = await fetch(newsUrl);
+    
+    if (!response.ok) {
+      throw new Error(`NewsAPI error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.status === 'error') {
+      throw new Error(`NewsAPI error: ${data.message || 'Unknown error'}`);
+    }
+
+    console.log(`📰 Found ${data.articles?.length || 0} news articles`);
+
+    res.json({
+      articles: data.articles || [],
+      totalResults: data.totalResults || 0,
+      query: query,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ News search error:', error.message);
+    res.status(500).json({ 
+      error: 'Failed to search news',
+      details: error.message,
+      articles: []
+    });
+  }
+});
+
 // Enhanced event search with real APIs
-app.get('/api/search-events', async (req, res) => {
+// Enhanced Events Search Endpoint (Multiple APIs)
+app.get('/api/search-events', optionalAuth, async (req, res) => {
   try {
     const { location, genre, timeframe = 'week' } = req.query;
     
@@ -831,14 +1293,26 @@ app.get("/api/searches", async (req, res) => {
   }
 });
 
-// Save search endpoint (for compatibility with frontend)
-app.post("/api/save-search", async (req, res) => {
+// Save search endpoint (enhanced with user association)
+app.post("/api/save-search", optionalAuth, async (req, res) => {
   try {
-    const { query, results } = req.body;
+    const { query, location, searchMode, results, resultCounts } = req.body;
+    
+    // Debug logging
+    console.log('🔍 Save search request:', {
+      isAuthenticated: req.isAuthenticated(),
+      userId: req.user ? req.user._id : 'no user',
+      username: req.user ? req.user.username : 'no username',
+      query: query
+    });
     
     const searchData = {
       query: query || 'Event Search',
+      location: location || '',
+      searchMode: searchMode || 'auto',
       results: results || [],
+      resultCounts: resultCounts || { events: 0, news: 0, github: 0, reddit: 0, total: 0 },
+      user: req.isAuthenticated() ? req.user._id : null,
       timestamp: new Date().toISOString()
     };
 
@@ -852,6 +1326,181 @@ app.post("/api/save-search", async (req, res) => {
   } catch (error) {
     console.error('Save search error:', error);
     res.status(500).json({ error: 'Failed to save search' });
+  }
+});
+
+// Get user's search history
+app.get("/api/user/searches", requireAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, search } = req.query;
+    const skip = (page - 1) * limit;
+
+    console.log('📚 Get user searches request:', {
+      userId: req.user._id,
+      username: req.user.username,
+      page: page,
+      limit: limit
+    });
+
+    if (!useMongoDb || !SearchModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    // Build query
+    const query = { user: req.user._id };
+    if (search) {
+      query.$or = [
+        { query: { $regex: search, $options: 'i' } },
+        { location: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Get searches with pagination
+    const searches = await SearchModel.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .select('query location searchMode resultCounts createdAt timestamp');
+
+    const total = await SearchModel.countDocuments(query);
+
+    res.json({
+      searches,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        count: searches.length,
+        totalResults: total
+      }
+    });
+
+  } catch (error) {
+    console.error('Get user searches error:', error);
+    res.status(500).json({ error: 'Failed to retrieve searches' });
+  }
+});
+
+// Get search details for preview
+app.get("/api/search/:id", optionalAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!useMongoDb || !SearchModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const search = await SearchModel.findById(id);
+
+    if (!search) {
+      return res.status(404).json({ error: 'Search not found' });
+    }
+
+    // Check if user has access to this search
+    if (search.user && (!req.isAuthenticated() || !search.user.equals(req.user._id)) && !search.isPublic) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    res.json(search);
+
+  } catch (error) {
+    console.error('Get search details error:', error);
+    res.status(500).json({ error: 'Failed to retrieve search details' });
+  }
+});
+
+// Delete user's search
+app.delete("/api/search/:id", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!useMongoDb || !SearchModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const search = await SearchModel.findById(id);
+
+    if (!search) {
+      return res.status(404).json({ error: 'Search not found' });
+    }
+
+    // Check if user owns this search
+    if (!search.user || !search.user.equals(req.user._id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    await SearchModel.findByIdAndDelete(id);
+    res.json({ message: 'Search deleted successfully' });
+
+  } catch (error) {
+    console.error('Delete search error:', error);
+    res.status(500).json({ error: 'Failed to delete search' });
+  }
+});
+
+// Toggle search visibility (public/private)
+app.put("/api/search/:id/visibility", requireAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isPublic } = req.body;
+
+    if (!useMongoDb || !SearchModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const search = await SearchModel.findById(id);
+
+    if (!search) {
+      return res.status(404).json({ error: 'Search not found' });
+    }
+
+    // Check if user owns this search
+    if (!search.user || !search.user.equals(req.user._id)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    search.isPublic = isPublic;
+    await search.save();
+
+    res.json({ message: 'Search visibility updated successfully', isPublic });
+
+  } catch (error) {
+    console.error('Update search visibility error:', error);
+    res.status(500).json({ error: 'Failed to update search visibility' });
+  }
+});
+
+// Get public searches (for discovery)
+app.get("/api/public/searches", optionalAuth, async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+
+    if (!useMongoDb || !SearchModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const searches = await SearchModel.find({ isPublic: true })
+      .populate('user', 'username firstName lastName')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit))
+      .select('query location searchMode resultCounts createdAt user');
+
+    const total = await SearchModel.countDocuments({ isPublic: true });
+
+    res.json({
+      searches,
+      pagination: {
+        current: parseInt(page),
+        total: Math.ceil(total / limit),
+        count: searches.length,
+        totalResults: total
+      }
+    });
+
+  } catch (error) {
+    console.error('Get public searches error:', error);
+    res.status(500).json({ error: 'Failed to retrieve public searches' });
   }
 });
 

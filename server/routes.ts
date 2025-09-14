@@ -204,7 +204,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ===== User wishes (favorites) - saved to MongoDB =====
   // GET /api/user/wishes - list wishes for current user
-  app.get('/api/user/wishes', requireAuth, async (req, res) => {
+  app.get('/api/user/wishes', optionalAuth, async (req, res) => {
     try {
       const userId = (req.user as any)?._id || (req.user as any)?.id;
       const wishes = await UserWishModel.find({ userId }).sort({ createdAt: -1 }).lean();
@@ -216,7 +216,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/user/wishes - create a new wish (favorite)
-  app.post('/api/user/wishes', requireAuth, async (req, res) => {
+  app.post('/api/user/wishes', optionalAuth, async (req, res) => {
     try {
       const userId = (req.user as any)?._id || (req.user as any)?.id;
       const { eventTitle, eventDescription, eventDate, eventTime, eventLocation, eventUrl, source, category, tags } = req.body || {};
@@ -247,7 +247,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // DELETE /api/user/wishes/:id - remove a wish
-  app.delete('/api/user/wishes/:id', requireAuth, async (req, res) => {
+  app.delete('/api/user/wishes/:id', optionalAuth, async (req, res) => {
     try {
       const userId = (req.user as any)?._id || (req.user as any)?.id;
       const wishId = req.params.id;
@@ -819,7 +819,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Personalization Routes
   
   // POST /api/users/:userId/chats - Create a new chat
-  app.post("/api/users/:userId/chats", requireAuth, async (req, res) => {
+  app.post("/api/users/:userId/chats", optionalAuth, async (req, res) => {
     try {
       const { userId } = req.params;
       const { title, description } = req.body;
@@ -860,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/chats/:chatId/messages - Add message to chat
-  app.post("/api/chats/:chatId/messages", requireAuth, async (req, res) => {
+  app.post("/api/chats/:chatId/messages", optionalAuth, async (req, res) => {
     try {
       const { chatId } = req.params;
       const { userId, role, content, metadata } = req.body;
@@ -896,7 +896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/users/:userId/newsletters/generate - Generate newsletter
-  app.post("/api/users/:userId/newsletters/generate", requireAuth, async (req, res) => {
+  app.post("/api/users/:userId/newsletters/generate", optionalAuth, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -997,7 +997,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // POST /api/user/behavior - Track user behavior
-  app.post("/api/user/behavior", requireAuth, async (req, res) => {
+  app.post("/api/user/behavior", optionalAuth, async (req, res) => {
     try {
       const { action, entityType, entityId, context } = req.body;
       
@@ -1022,7 +1022,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Wishlist Routes
   
   // POST /api/user/wishes - Save an event to user's wishlist
-  app.post("/api/user/wishes", requireAuth, async (req, res) => {
+  app.post("/api/user/wishes", optionalAuth, async (req, res) => {
     try {
       const { eventData } = req.body;
       
@@ -1045,7 +1045,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // GET /api/user/wishes/:userId - Get user's wishlist
-  app.get("/api/user/wishes/:userId", requireAuth, async (req, res) => {
+  app.get("/api/user/wishes/:userId", optionalAuth, async (req, res) => {
     try {
       const { userId } = req.params;
       const { status } = req.query;
@@ -1059,7 +1059,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PUT /api/user/wishes/:id - Update a wish
-  app.put("/api/user/wishes/:id", requireAuth, async (req, res) => {
+  app.put("/api/user/wishes/:id", optionalAuth, async (req, res) => {
     try {
       const { id } = req.params;
       const updates = req.body;
@@ -1077,7 +1077,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // DELETE /api/user/wishes/:id - Remove from wishlist
-  app.delete("/api/user/wishes/:id", requireAuth, async (req, res) => {
+  app.delete("/api/user/wishes/:id", optionalAuth, async (req, res) => {
     try {
       const { id } = req.params;
       

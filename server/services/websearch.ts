@@ -1,5 +1,5 @@
 // Web search service for finding content across the internet
-import { ScrapedContent } from './scraper';
+import { ScrapedContent } from './scraper-simple';
 
 export interface SearchResult {
   title: string;

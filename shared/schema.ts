@@ -1,13 +1,73 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, jsonb, boolean, integer } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User schema
+// Enhanced User schema with personalization features
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
+  email: text("email").unique(),
   password: text("password").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  avatar: text("avatar"), // Profile picture URL
+  timezone: text("timezone").default('UTC'),
+  preferences: jsonb("preferences"), // User preferences for newsletter, notifications, etc.
+  interests: jsonb("interests"), // Manual interests for newsletter generation
+  newsletterEnabled: boolean("newsletter_enabled").default(true),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chats schema - conversations belonging to users
+export const chats = pgTable("chats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text("title").notNull(),
+  description: text("description"),
+  isArchived: boolean("is_archived").default(false),
+  tags: jsonb("tags"), // Array of tags for chat categorization
+  metadata: jsonb("metadata"), // Additional chat metadata
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chat Messages schema
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatId: varchar("chat_id").notNull().references(() => chats.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text("role").notNull(), // 'user', 'assistant', 'system'
+  content: text("content").notNull(),
+  contentType: text("content_type").default('text'), // 'text', 'markdown', 'code', 'image'
+  metadata: jsonb("metadata"), // Additional message metadata (tokens, model used, etc.)
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User Behavior Tracking for newsletter personalization
+export const userBehavior = pgTable("user_behavior", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  action: text("action").notNull(), // 'view_content', 'bookmark', 'search', 'chat_message', etc.
+  entityType: text("entity_type"), // 'content', 'chat', 'calendar_event'
+  entityId: varchar("entity_id"), // ID of the entity being interacted with
+  context: jsonb("context"), // Additional context about the action
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Newsletter schema
+export const newsletters = pgTable("newsletters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text("title").notNull(),
+  content: text("content").notNull(), // Generated newsletter content
+  contentHtml: text("content_html"), // HTML version
+  topics: jsonb("topics"), // Array of topics covered
+  sentAt: timestamp("sent_at"),
+  status: text("status").default('draft'), // 'draft', 'sent', 'failed'
+  generationMetadata: jsonb("generation_metadata"), // How it was generated
   createdAt: timestamp("created_at").defaultNow(),
 });
 

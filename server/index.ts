@@ -1,12 +1,27 @@
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
+import passport from "passport";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { sessionConfig, configurePassport } from "./middleware/auth";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  credentials: true,
+  origin: process.env.NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL 
+    : true // Allow all origins in development
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Session and authentication setup
+app.use(sessionConfig);
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Configure passport strategies
+configurePassport();
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -63,11 +78,7 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  server.listen(port, () => {
     log(`serving on port ${port}`);
   });
 })();

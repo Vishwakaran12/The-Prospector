@@ -2,8 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Development Content Security Policy: allows Google APIs and common external resources for local dev. Remove or tighten for production. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' data: blob: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://apis.googleusercontent.com https://content.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; connect-src 'self' https://www.googleapis.com https://content.googleapis.com https://accounts.google.com https://www.googleapis.com https://apis.google.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Prospector - Cyberpunk Interface</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
@@ -449,94 +447,6 @@
             100% { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8); }
         }
 
-        /* Calendar Widget Styles */
-        .calendar-day-header {
-            background: linear-gradient(45deg, var(--cyber-blue), var(--cyber-purple));
-            color: black;
-            font-weight: bold;
-            text-align: center;
-            padding: 8px 4px;
-            font-size: 0.8rem;
-        }
-
-        .calendar-day {
-            min-height: 60px;
-            border: 1px solid rgba(139, 0, 255, 0.3);
-            background: rgba(139, 0, 255, 0.05);
-            padding: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .calendar-day:hover {
-            background: rgba(139, 0, 255, 0.15);
-            border-color: var(--cyber-purple);
-            transform: scale(1.02);
-        }
-
-        .calendar-day.today {
-            background: rgba(0, 255, 255, 0.2);
-            border: 2px solid var(--cyber-blue);
-            font-weight: bold;
-        }
-
-        .calendar-day.has-events {
-            background: rgba(0, 255, 65, 0.1);
-            border-color: var(--cyber-green);
-        }
-
-        .calendar-day.other-month {
-            opacity: 0.3;
-            cursor: default;
-        }
-
-        .calendar-day-number {
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: var(--cyber-purple);
-            margin-bottom: 2px;
-        }
-
-        .calendar-event-banner {
-            background: linear-gradient(45deg, var(--cyber-green), var(--cyber-blue));
-            color: black;
-            font-size: 0.6rem;
-            padding: 1px 3px;
-            margin: 1px 0;
-            border-radius: 2px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .calendar-event-item {
-            background: rgba(0, 255, 65, 0.1);
-            border: 1px solid var(--cyber-green);
-            border-radius: 6px;
-            padding: 10px;
-            margin: 8px 0;
-        }
-
-        .calendar-event-title {
-            color: var(--cyber-green);
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .calendar-event-time {
-            color: var(--cyber-blue);
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .calendar-event-description {
-            color: #ccc;
-            font-size: 0.9rem;
-        }
-
         .history-content {
             flex: 1;
             min-width: 0;
@@ -955,9 +865,6 @@
             <button class="clear-history-btn" onclick="clearSearchHistory()">
                 Clear History
             </button>
-            <button id="openCalendarBtn" class="clear-history-btn" style="margin-top:10px; display:none;" onclick="openCalendarMode()">
-                📅 Open Calendar
-            </button>
         </div>
     </div>
 
@@ -1028,7 +935,6 @@
                         🌐 Social
                         <span class="mode-badge">All</span>
                     </button>
-                    <!-- Calendar mode intentionally removed from main modes; access via burger menu only -->
                 </div>
             </div>
 
@@ -1194,101 +1100,6 @@
     </section>
 </div>
 
-<!-- Calendar Section -->
-<section class="search-section" id="calendarSection" style="display: none;">
-    <h2 class="results-title" style="margin-bottom: 20px;">📅 Google Calendar Integration</h2>
-    
-    <!-- Calendar Authentication -->
-    <div style="text-align: center; margin-bottom: 20px;">
-        <div id="calendarAuthStatus" style="margin-bottom: 12px; color: var(--cyber-blue);">
-            📅 Sign in to Google to access your calendars
-        </div>
-        <div id="calendarAuthButtons">
-            <button id="signInButton" onclick="signInToGoogle()" class="cyber-button" 
-                    style="background: linear-gradient(45deg, var(--cyber-blue), var(--cyber-green)); margin-right:8px;">
-                🔗 Connect Google Calendar
-            </button>
-            <button id="signOutButton" onclick="signOutFromGoogle()" class="cyber-button" 
-                    style="background: linear-gradient(45deg, var(--cyber-pink), var(--cyber-orange)); display: none;">
-                🚪 Disconnect Calendar
-            </button>
-        </div>
-    </div>
-
-    <!-- Calendar Controls -->
-    <div id="calendarControls" style="display: none;">
-        <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
-            <div>
-                <label style="color: var(--cyber-blue); font-weight: bold;">📋 Calendar:</label>
-                <select id="calendarSelect" class="cyber-input" style="min-width: 200px;">
-                    <option value="">Select a Calendar</option>
-                </select>
-                <div id="calendarList" style="display:none; margin-top:8px; font-size:0.9rem; color: var(--cyber-green);"></div>
-            </div>
-            <div>
-                <label style="color: var(--cyber-green); font-weight: bold;">📅 From:</label>
-                <input type="date" id="startDate" class="cyber-input">
-            </div>
-            <div>
-                <label style="color: var(--cyber-green); font-weight: bold;">📅 To:</label>
-                <input type="date" id="endDate" class="cyber-input">
-            </div>
-            <button onclick="loadCalendarEvents()" class="cyber-button">
-                🔍 Load Events
-            </button>
-        </div>
-
-        <!-- Create Event Section -->
-            <div id="eventForm" style="border: 1px solid var(--cyber-blue); border-radius: 10px; padding: 15px; margin-bottom: 20px; background: rgba(0, 255, 255, 0.05); display:none;">
-            <h3 style="color: var(--cyber-blue); margin-bottom: 15px;">➕ Create New Event</h3>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
-                <div style="flex: 1; min-width: 200px;">
-                    <label style="color: var(--cyber-green); font-weight: bold;">Event Title:</label>
-                    <input type="text" id="eventTitle" placeholder="Enter event title" class="cyber-input">
-                </div>
-                <div>
-                    <label style="color: var(--cyber-green); font-weight: bold;">Calendar:</label>
-                    <select id="eventCalendarSelect" class="cyber-input">
-                    </select>
-                </div>
-                <div>
-                    <label style="color: var(--cyber-green); font-weight: bold;">Start:</label>
-                    <input type="datetime-local" id="eventStart" class="cyber-input">
-                </div>
-                <div>
-                    <label style="color: var(--cyber-green); font-weight: bold;">End:</label>
-                    <input type="datetime-local" id="eventEnd" class="cyber-input">
-                </div>
-                <div style="flex-basis:100%;"></div>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="eventLocation" placeholder="Location (optional)" class="cyber-input" style="min-width:200px;" />
-                    <button onclick="createCalendarEvent()" class="cyber-button">
-                        ➕ Create Event
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Calendar Widget -->
-    <div id="calendarWidget" style="display: none; margin-bottom: 20px;">
-        <div style="border: 1px solid var(--cyber-purple); border-radius: 10px; padding: 15px; background: rgba(139, 0, 255, 0.05);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <button onclick="changeMonth(-1)" class="cyber-button" style="padding: 8px 12px;">◀</button>
-                <h3 id="currentMonth" style="color: var(--cyber-purple); margin: 0;"></h3>
-                <button onclick="changeMonth(1)" class="cyber-button" style="padding: 8px 12px;">▶</button>
-            </div>
-            <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 15px;"></div>
-            <div id="selectedDayEvents" style="display: none; padding: 15px; background: rgba(0, 255, 255, 0.1); border-radius: 8px;"></div>
-        </div>
-    </div>
-
-    <!-- Results will show here -->
-    <div id="calendarResults" style="min-height: 200px;">
-        <p style="text-align: center; color: #666;">Connect to Google Calendar to view and manage your events...</p>
-    </div>
-</section>
-
 <!-- Authentication Modals -->
 <div id="authModal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -1301,11 +1112,6 @@
                 <input type="text" id="loginUsername" placeholder="Username or Email" class="cyber-input" required>
                 <input type="password" id="loginPassword" placeholder="Password" class="cyber-input" required>
                 <button type="submit" class="cyber-button">Access Network</button>
-                <div style="text-align:center; margin-top:6px;">
-                    <button type="button" onclick="handleGoogleSignIn('login')" class="cyber-button" style="background: linear-gradient(45deg, #4285f4, #34a853);">
-                        Sign in with Google
-                    </button>
-                </div>
                 <p style="text-align: center; color: #888; margin: 10px 0;">
                     New agent? <a href="#" onclick="switchToRegister()" style="color: var(--cyber-green);">Register here</a>
                 </p>
@@ -1322,11 +1128,6 @@
                 <input type="text" id="regFirstName" placeholder="First Name (optional)" class="cyber-input">
                 <input type="text" id="regLastName" placeholder="Last Name (optional)" class="cyber-input">
                 <button type="submit" class="cyber-button">Join Network</button>
-                <div style="text-align:center; margin-top:6px;">
-                    <button type="button" onclick="handleGoogleSignIn('register')" class="cyber-button" style="background: linear-gradient(45deg, #4285f4, #34a853);">
-                        Register with Google
-                    </button>
-                </div>
                 <p style="text-align: center; color: #888; margin: 10px 0;">
                     Already an agent? <a href="#" onclick="switchToLogin()" style="color: var(--cyber-blue);">Login here</a>
                 </p>
@@ -1385,7 +1186,7 @@
 </div>
 
     <script>
-        // GitHub, Reddit, and Google Calendar API Configuration
+        // GitHub and Reddit API Configuration
         const API_CONFIG = {
             github: {
                 token: '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',
@@ -1442,566 +1243,6 @@
                     // Wait before retry
                     await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
                 }
-            }
-        }
-
-        // ========== GOOGLE CALENDAR API INTEGRATION ==========
-        
-        let isGoogleApiLoaded = false;
-        let isGoogleSignedIn = false;
-        let isInitializing = false;
-        let googleCalendars = [];
-        let accessToken = null;
-
-        // Initialize Google APIs with new Google Identity Services
-        async function initializeGoogleApis() {
-            if (isGoogleApiLoaded || isInitializing) {
-                return;
-            }
-
-            isInitializing = true;
-
-            try {
-                // If gapi isn't present, dynamically load it
-                if (typeof gapi === 'undefined') {
-                    console.log('gapi not found, injecting script tag to load Google APIs...');
-                    await new Promise((resolve, reject) => {
-                        const script = document.createElement('script');
-                        script.src = 'https://apis.google.com/js/api.js';
-                        script.async = true;
-                        script.defer = true;
-                        script.onload = () => resolve();
-                        script.onerror = () => reject(new Error('Failed to load https://apis.google.com/js/api.js'));
-                        document.head.appendChild(script);
-                        // Fallback timeout
-                        setTimeout(() => {
-                            if (typeof gapi === 'undefined') {
-                                reject(new Error('gapi did not become available after script load'));
-                            }
-                        }, 8000);
-                    });
-                }
-
-                console.log('Initializing Google APIs...');
-
-                // Load the calendar API
-                await new Promise((resolve, reject) => {
-                    if (!gapi || !gapi.load) return reject(new Error('gapi.load not available'));
-                    gapi.load('client:auth2', {
-                        callback: resolve,
-                        onerror: reject
-                    });
-                });
-                
-                // Initialize the client
-                await gapi.client.init({
-                    apiKey: 'AIzaSyDjSh5eHqg1XrJZX6qhDJCZNCYLLXzZPXE',
-                    clientId: '1039245766969-h9l8v3t2j4hkh6hb1b3k4q8g6s8j9v0a.apps.googleusercontent.com',
-                    discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'],
-                    scope: 'https://www.googleapis.com/auth/calendar'
-                });
-                
-                const authInstance = gapi.auth2.getAuthInstance();
-                isGoogleSignedIn = authInstance.isSignedIn.get();
-                
-                // Listen for sign-in state changes
-                authInstance.isSignedIn.listen(updateCalendarUI);
-                
-                isGoogleApiLoaded = true;
-                console.log('Google APIs initialized successfully');
-                
-                await updateCalendarUI();
-                
-            } catch (error) {
-                console.error('Error initializing Google APIs:', error);
-                // Provide actionable hints for CSP/CORS errors that commonly occur when embedding gapi
-                const hint = `Possible causes: Content Security Policy blocking external scripts, missing CORS headers, or incorrect API credentials.`;
-                const details = error && error.message ? error.message : JSON.stringify(error);
-                document.getElementById('calendarAuthStatus').innerHTML = `
-                        <div style="color: var(--cyber-pink);">
-                            ❌ Failed to initialize Google Calendar API
-                            <br><small>${escapeHtml(hint)}</small>
-                            <br><small>Details: ${escapeHtml(details)}</small>
-                        </div>
-                    `;
-            } finally {
-                isInitializing = false;
-            }
-        }
-
-        // Sign in to Google using OAuth2 for Calendar access
-        async function signInToGoogle() {
-            try {
-                if (!isGoogleApiLoaded) {
-                    await initializeGoogleApis();
-                }
-                
-                const authInstance = gapi.auth2.getAuthInstance();
-                const user = await authInstance.signIn();
-                
-                console.log('Google sign-in successful:', user.getBasicProfile().getName());
-                isGoogleSignedIn = true;
-                
-                await updateCalendarUI();
-                await loadGoogleCalendars();
-                
-            } catch (error) {
-                console.error('Google sign-in failed:', error);
-                document.getElementById('calendarAuthStatus').innerHTML = `
-                    <div style="color: var(--cyber-pink);">
-                        ❌ Sign-in failed: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#39;');
-        }
-
-        // Sign out from Google
-        async function signOutFromGoogle() {
-            try {
-                const authInstance = gapi.auth2.getAuthInstance();
-                await authInstance.signOut();
-                
-                isGoogleSignedIn = false;
-                googleCalendars = [];
-                
-                await updateCalendarUI();
-                
-                console.log('Google sign-out successful');
-                
-            } catch (error) {
-                console.error('Google sign-out failed:', error);
-            }
-        }
-
-        // Update Calendar UI based on sign-in status
-        async function updateCalendarUI() {
-            const authStatusDiv = document.getElementById('calendarAuthStatus');
-            const calendarListDiv = document.getElementById('calendarList');
-            const eventFormDiv = document.getElementById('eventForm');
-            const calendarWidgetDiv = document.getElementById('calendarWidget');
-            
-            if (!isGoogleApiLoaded) {
-                authStatusDiv.innerHTML = `
-                    <div style="color: var(--cyber-orange);">
-                        🔄 Initializing Google Calendar API...
-                    </div>
-                `;
-                return;
-            }
-            
-            if (isGoogleSignedIn) {
-                const authInstance = gapi.auth2.getAuthInstance();
-                const user = authInstance.currentUser.get();
-                const profile = user.getBasicProfile();
-                
-                authStatusDiv.innerHTML = `
-                    <div style="color: var(--cyber-green);">
-                        ✅ Signed in as: ${profile.getName()} (${profile.getEmail()})
-                        <button onclick="signOutFromGoogle()" class="cyber-button" style="margin-left: 10px; padding: 5px 15px; font-size: 0.8rem;">
-                            Sign Out
-                        </button>
-                    </div>
-                `;
-                
-                calendarListDiv.style.display = 'block';
-                eventFormDiv.style.display = 'block';
-                calendarWidgetDiv.style.display = 'block';
-                
-                await loadGoogleCalendars();
-                await loadCalendarEventsForWidget();
-                
-            } else {
-                authStatusDiv.innerHTML = `
-                    <div style="color: var(--cyber-blue);">
-                        📅 Sign in to Google to access your calendars
-                        <button onclick="signInToGoogle()" class="cyber-button" style="margin-left: 10px;">
-                            Sign In to Google
-                        </button>
-                    </div>
-                `;
-                
-                calendarListDiv.style.display = 'none';
-                eventFormDiv.style.display = 'none';
-                calendarWidgetDiv.style.display = 'none';
-            }
-        }
-
-        // Load Google Calendars
-        async function loadGoogleCalendars() {
-            try {
-                const response = await gapi.client.calendar.calendarList.list();
-                googleCalendars = response.result.items || [];
-                
-                const calendarSelect = document.getElementById('calendarSelect');
-                const eventCalendarSelect = document.getElementById('eventCalendarSelect');
-                
-                calendarSelect.innerHTML = '<option value="">All Calendars</option>';
-                eventCalendarSelect.innerHTML = '';
-                
-                googleCalendars.forEach(calendar => {
-                    const option = document.createElement('option');
-                    option.value = calendar.id;
-                    option.textContent = calendar.summary;
-                    calendarSelect.appendChild(option.cloneNode(true));
-                    
-                    const eventOption = document.createElement('option');
-                    eventOption.value = calendar.id;
-                    eventOption.textContent = calendar.summary;
-                    eventCalendarSelect.appendChild(eventOption);
-                });
-                
-                console.log('Loaded calendars:', googleCalendars.length);
-                
-                // Load events for the first time
-                await loadCalendarEvents();
-                
-            } catch (error) {
-                console.error('Error loading calendars:', error);
-                document.getElementById('calendarList').innerHTML = `
-                    <div style="color: var(--cyber-pink);">
-                        ❌ Error loading calendars: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // Load Calendar Events
-        async function loadCalendarEvents() {
-            if (!isGoogleSignedIn) return;
-            
-            try {
-                const calendarSelect = document.getElementById('calendarSelect');
-                const selectedCalendar = calendarSelect.value;
-                const eventsContainer = document.getElementById('calendarEvents');
-                
-                eventsContainer.innerHTML = '<div class="loading">📅 Loading events...</div>';
-                
-                const calendarsToLoad = selectedCalendar 
-                    ? [googleCalendars.find(cal => cal.id === selectedCalendar)]
-                    : googleCalendars.slice(0, 5); // Limit to first 5 calendars for performance
-                
-                let allEvents = [];
-                
-                for (const calendar of calendarsToLoad) {
-                    if (!calendar) continue;
-                    
-                    const response = await gapi.client.calendar.events.list({
-                        calendarId: calendar.id,
-                        timeMin: new Date().toISOString(),
-                        maxResults: 20,
-                        singleEvents: true,
-                        orderBy: 'startTime'
-                    });
-                    
-                    const events = response.result.items || [];
-                    events.forEach(event => {
-                        event.calendarName = calendar.summary;
-                        event.calendarColor = calendar.backgroundColor || '#4285f4';
-                    });
-                    
-                    allEvents = allEvents.concat(events);
-                }
-                
-                allEvents.sort((a, b) => {
-                    const aDate = new Date(a.start.dateTime || a.start.date);
-                    const bDate = new Date(b.start.dateTime || b.start.date);
-                    return aDate - bDate;
-                });
-                
-                displayCalendarEvents(allEvents);
-                
-            } catch (error) {
-                console.error('Error loading events:', error);
-                document.getElementById('calendarEvents').innerHTML = `
-                    <div style="color: var(--cyber-pink);">
-                        ❌ Error loading events: ${error.message}
-                    </div>
-                `;
-            }
-        }
-
-        // Display Calendar Events
-        function displayCalendarEvents(events, calendarId) {
-            const container = document.getElementById('calendarEvents');
-            
-            if (!events || events.length === 0) {
-                container.innerHTML = '<div style="color: var(--cyber-orange);">📅 No upcoming events found</div>';
-                return;
-            }
-            
-            const eventsHtml = events.map(event => {
-                const startDate = new Date(event.start.dateTime || event.start.date);
-                const endDate = new Date(event.end.dateTime || event.end.date);
-                const isAllDay = !event.start.dateTime;
-                
-                const timeString = isAllDay 
-                    ? 'All Day'
-                    : `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                
-                const evId = event.id || (event.htmlLink || event.summary || startDate.toISOString());
-                const evMeta = { title: event.summary, description: event.description, link: event.htmlLink };
-                const isStarred = isItemStarred(evId);
-                return `
-                    <div class="result-item" style="border-left: 4px solid ${event.calendarColor || '#4285f4'}; position: relative;">
-                        <div style="position: absolute; top: 10px; right: 12px;">
-                            <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="toggleStar('${escapeForJS(evId)}', ${encodeURIComponent(JSON.stringify(evMeta))})" title="Star this event" style="padding:6px 8px; border-radius:6px; background: rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.05); color: var(--cyber-blue);">
-                                ${isStarred ? '★ Starred' : '☆ Star'}
-                            </button>
-                        </div>
-                        <div class="result-title" style="color: var(--cyber-blue);">
-                            ${event.summary || 'Untitled Event'}
-                        </div>
-                        <div style="color: var(--cyber-green); font-size: 0.9rem; margin: 5px 0;">
-                            📅 ${startDate.toLocaleDateString()} • ${timeString}
-                        </div>
-                        ${event.calendarName ? `<div style="color: var(--cyber-orange); font-size: 0.8rem;">📋 ${event.calendarName}</div>` : ''}
-                        ${event.description ? `<div class="result-snippet">${event.description.substring(0, 150)}${event.description.length > 150 ? '...' : ''}</div>` : ''}
-                        ${event.location ? `<div style="color: var(--cyber-pink); font-size: 0.9rem; margin-top: 5px;">📍 ${event.location}</div>` : ''}
-                        ${event.htmlLink ? `<a href="${event.htmlLink}" target="_blank" class="result-link" style="display: inline-block; margin-top: 10px;">View in Google Calendar →</a>` : ''}
-                    </div>
-                `;
-            }).join('');
-            
-            container.innerHTML = eventsHtml;
-        }
-
-        // Create Calendar Event
-        async function createCalendarEvent() {
-            if (!isGoogleSignedIn) {
-                alert('Please sign in to Google Calendar first');
-                return;
-            }
-            
-            try {
-                const calendarId = document.getElementById('eventCalendarSelect').value;
-                const title = document.getElementById('eventTitle').value;
-                const description = document.getElementById('eventDescription').value;
-                const startDate = document.getElementById('eventStartDate').value;
-                const startTime = document.getElementById('eventStartTime').value;
-                const endDate = document.getElementById('eventEndDate').value;
-                const endTime = document.getElementById('eventEndTime').value;
-                const location = document.getElementById('eventLocation').value;
-                
-                if (!calendarId || !title || !startDate) {
-                    alert('Please fill in required fields: Calendar, Title, and Start Date');
-                    return;
-                }
-                
-                const startDateTime = startTime 
-                    ? `${startDate}T${startTime}:00`
-                    : startDate;
-                    
-                const endDateTime = endDate && endTime 
-                    ? `${endDate}T${endTime}:00`
-                    : endDate || startDate;
-                
-                const event = {
-                    summary: title,
-                    description: description,
-                    location: location,
-                    start: startTime ? {
-                        dateTime: startDateTime,
-                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                    } : {
-                        date: startDate
-                    },
-                    end: (endDate && endTime) ? {
-                        dateTime: endDateTime,
-                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                    } : {
-                        date: endDate || startDate
-                    }
-                };
-                
-                const response = await gapi.client.calendar.events.insert({
-                    calendarId: calendarId,
-                    resource: event
-                });
-                
-                console.log('Event created:', response.result);
-                alert('Event created successfully!');
-                
-                // Clear form
-                document.getElementById('eventTitle').value = '';
-                document.getElementById('eventDescription').value = '';
-                document.getElementById('eventStartDate').value = '';
-                document.getElementById('eventStartTime').value = '';
-                document.getElementById('eventEndDate').value = '';
-                document.getElementById('eventEndTime').value = '';
-                document.getElementById('eventLocation').value = '';
-                
-                // Reload events
-                await loadCalendarEvents();
-                await loadCalendarEventsForWidget();
-                
-            } catch (error) {
-                console.error('Error creating event:', error);
-                alert('Error creating event: ' + error.message);
-            }
-        }
-
-        // ========== CALENDAR WIDGET FUNCTIONS ==========
-        
-        let currentCalendarDate = new Date();
-        let calendarEvents = [];
-        
-        // Initialize Calendar Widget
-        function initializeCalendarWidget() {
-            generateCalendar();
-            loadCalendarEventsForWidget();
-        }
-        
-        // Generate Calendar Grid
-        function generateCalendar() {
-            const year = currentCalendarDate.getFullYear();
-            const month = currentCalendarDate.getMonth();
-            
-            // Update header
-            document.getElementById('currentMonth').textContent = 
-                new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            
-            // Get first day of month and number of days
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const today = new Date();
-            
-            const calendarGrid = document.getElementById('calendarGrid');
-            calendarGrid.innerHTML = '';
-            
-            // Add day headers
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(day => {
-                const dayHeader = document.createElement('div');
-                dayHeader.className = 'calendar-day-header';
-                dayHeader.textContent = day;
-                calendarGrid.appendChild(dayHeader);
-            });
-            
-            // Add empty cells for days before month starts
-            for (let i = 0; i < firstDay; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.className = 'calendar-day other-month';
-                calendarGrid.appendChild(emptyDay);
-            }
-            
-            // Add days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayElement = document.createElement('div');
-                dayElement.className = 'calendar-day';
-                
-                const currentDate = new Date(year, month, day);
-                const isToday = currentDate.toDateString() === today.toDateString();
-                
-                if (isToday) {
-                    dayElement.classList.add('today');
-                }
-                
-                // Check if day has events
-                const dayEvents = getEventsForDate(currentDate);
-                if (dayEvents.length > 0) {
-                    dayElement.classList.add('has-events');
-                }
-                
-                dayElement.innerHTML = `
-                    <div class="calendar-day-number">${day}</div>
-                    ${dayEvents.slice(0, 2).map(event => 
-                        `<div class="calendar-event-banner" title="${event.summary}">${event.summary}</div>`
-                    ).join('')}
-                    ${dayEvents.length > 2 ? `<div class="calendar-event-banner">+${dayEvents.length - 2} more</div>` : ''}
-                `;
-                
-                dayElement.addEventListener('click', () => showEventsForDay(currentDate, dayEvents));
-                
-                calendarGrid.appendChild(dayElement);
-            }
-        }
-        
-        // Change Calendar Month
-        function changeMonth(direction) {
-            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + direction);
-            generateCalendar();
-        }
-        
-        // Get Events for a Specific Date
-        function getEventsForDate(date) {
-            return calendarEvents.filter(event => {
-                const eventDate = new Date(event.start.dateTime || event.start.date);
-                return eventDate.toDateString() === date.toDateString();
-            });
-        }
-        
-        // Show Events for Selected Day
-        function showEventsForDay(date, events) {
-            const container = document.getElementById('selectedDayEvents');
-            
-            container.innerHTML = `
-                <h4 style="color: var(--cyber-blue); margin-bottom: 15px;">
-                    Events for ${date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </h4>
-                ${events.length === 0 ? 
-                    '<div style="color: var(--cyber-orange);">No events scheduled</div>' :
-                    events.map(event => {
-                        const startDate = new Date(event.start.dateTime || event.start.date);
-                        const endDate = new Date(event.end.dateTime || event.end.date);
-                        const isAllDay = !event.start.dateTime;
-                        
-                        const timeString = isAllDay 
-                            ? 'All Day'
-                            : `${startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - ${endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-                        
-                        return `
-                            <div class="calendar-event-item">
-                                <div class="calendar-event-title">${event.summary || 'Untitled Event'}</div>
-                                <div class="calendar-event-time">${timeString}</div>
-                                ${event.description ? `<div class="calendar-event-description">${event.description}</div>` : ''}
-                                ${event.location ? `<div style="color: var(--cyber-pink); font-size: 0.8rem;">📍 ${event.location}</div>` : ''}
-                            </div>
-                        `;
-                    }).join('')
-                }
-            `;
-        }
-        
-        // Load Calendar Events for Widget
-        async function loadCalendarEventsForWidget() {
-            if (!isGoogleSignedIn) return;
-            
-            try {
-                let allEvents = [];
-                
-                for (const calendar of googleCalendars.slice(0, 5)) {
-                    const response = await gapi.client.calendar.events.list({
-                        calendarId: calendar.id,
-                        timeMin: new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth(), 1).toISOString(),
-                        timeMax: new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 0, 23, 59, 59).toISOString(),
-                        singleEvents: true,
-                        orderBy: 'startTime'
-                    });
-                    
-                    const events = response.result.items || [];
-                    events.forEach(event => {
-                        event.calendarName = calendar.summary;
-                        event.calendarColor = calendar.backgroundColor || '#4285f4';
-                    });
-                    
-                    allEvents = allEvents.concat(events);
-                }
-                
-                calendarEvents = allEvents;
-                generateCalendar();
-                
-            } catch (error) {
-                console.error('Error loading calendar events for widget:', error);
             }
         }
 
@@ -2497,16 +1738,8 @@
                         `;
                     }
                     
-                    // Unique id for the result so we can star it
-                    const resultId = result.id || result.link || `${source}-${index}`;
-                    const isStarred = isItemStarred(resultId);
                     return `
-                        <div class="history-item" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 0, 0, 0.3); position: relative;">
-                            <div style="position: absolute; top: 12px; right: 12px;">
-                                <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="toggleStar('${escapeForJS(resultId)}', ${encodeURIComponent(JSON.stringify({title: title, description: description, link: link}))})" title="Star and add to Calendar" style="padding:6px 8px; border-radius:6px; background: rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.05); color: var(--cyber-blue);">
-                                    ${isStarred ? '★ Starred' : '☆ Star'}
-                                </button>
-                            </div>
+                        <div class="history-item" style="margin-bottom: 15px; padding: 15px; background: rgba(0, 0, 0, 0.3);">
                             <div class="history-content">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                                     <div style="flex: 1;">
@@ -2526,234 +1759,6 @@
             `;
 
             resultsDiv.innerHTML = socialResultsHTML;
-        }
-
-        // Star management: persist starred items, toggle UI, and optionally add to Google Calendar
-        const starredItemsKey = 'prospectorStarredItems';
-
-        function getStarredItems() {
-            try {
-                return JSON.parse(localStorage.getItem(starredItemsKey) || '{}');
-            } catch (e) { return {}; }
-        }
-
-        function isItemStarred(id) {
-            const items = getStarredItems();
-            return !!items[id];
-        }
-
-        function saveStarredItems(items) {
-            localStorage.setItem(starredItemsKey, JSON.stringify(items || {}));
-        }
-
-        // escape simple string for inline JS call
-        function escapeForJS(s) {
-            return String(s || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\"/g,'\\\"');
-        }
-
-        async function toggleStar(id, meta) {
-            const items = getStarredItems();
-            const isStarredNow = !!items[id];
-
-            // If user authenticated, prefer server sync
-            if (currentUser) {
-                try {
-                    if (isStarredNow) {
-                        // find wish id in server: best-effort by matching eventUrl or title
-                        // We'll attempt to delete by searching user's wishes first
-                        const listResp = await fetch('/api/user/wishes', { credentials: 'include' });
-                        if (listResp.ok) {
-                            const data = await listResp.json();
-                            const found = (data.wishes || []).find(w => (w.eventUrl === (meta.link || '') ) || (w.eventTitle === (meta.title || '')) );
-                            if (found) {
-                                await fetch(`/api/user/wishes/${found._id}`, { method: 'DELETE', credentials: 'include' });
-                            }
-                        }
-
-                        delete items[id];
-                        saveStarredItems(items);
-                        document.querySelectorAll(`button.star-btn`).forEach(btn => {
-                            if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(id)) {
-                                btn.classList.remove('starred'); btn.textContent = '☆ Star';
-                            }
-                        });
-                        showNotification('⭐ Removed from favorites', 'info');
-                        return;
-                    }
-
-                    // Create wish on server
-                    const wishBody = {
-                        eventTitle: meta.title || 'Starred item',
-                        eventDescription: meta.description || '',
-                        eventUrl: meta.link || '',
-                        eventDate: meta.eventDate || undefined,
-                        eventTime: meta.eventTime || undefined,
-                        eventLocation: meta.eventLocation || undefined,
-                        source: meta.source || 'prospector'
-                    };
-
-                    const createResp = await fetch('/api/user/wishes', {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(wishBody)
-                    });
-
-                    if (!createResp.ok) throw new Error('Failed to save favorite to server');
-                    const created = await createResp.json();
-
-                    // Persist locally as well for quick UI
-                    items[id] = { meta: meta || {}, starredAt: new Date().toISOString(), serverId: created.wish._id };
-                    saveStarredItems(items);
-
-                    document.querySelectorAll(`button.star-btn`).forEach(btn => {
-                        if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(id)) {
-                            btn.classList.add('starred'); btn.textContent = '★ Starred';
-                        }
-                    });
-
-                    showNotification('⭐ Saved to favorites', 'success');
-
-                    // Optionally add to Google Calendar
-                    if (isGoogleSignedIn && typeof gapi !== 'undefined' && gapi.client && gapi.client.calendar) {
-                        try {
-                            const title = meta.title || 'Starred item';
-                            const description = meta.description || '';
-                            const link = meta.link || '';
-                            const start = new Date(Date.now() + 60 * 60 * 1000);
-                            const end = new Date(start.getTime() + 60 * 60 * 1000);
-                            const event = {
-                                summary: title,
-                                description: description + (link ? `\n\nLink: ${link}` : ''),
-                                start: { dateTime: start.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-                                end: { dateTime: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
-                            };
-                            await gapi.client.calendar.events.insert({ calendarId: 'primary', resource: event });
-                            showNotification('📅 Also added to Google Calendar', 'success');
-                        } catch (err) {
-                            console.error('Calendar insert failed:', err);
-                            showNotification('⚠️ Could not add to Google Calendar', 'error');
-                        }
-                    }
-                    return;
-                } catch (err) {
-                    console.error('Server sync for favorites failed, falling back to local:', err);
-                    showNotification('⚠️ Could not sync favorite to server; saved locally', 'error');
-                    // continue to fallback local behavior
-                }
-            }
-
-            // Local-only flow (guest or server failure)
-            if (isStarredNow) {
-                delete items[id];
-                saveStarredItems(items);
-                document.querySelectorAll(`button.star-btn`).forEach(btn => {
-                    if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(id)) {
-                        btn.classList.remove('starred'); btn.textContent = '☆ Star';
-                    }
-                });
-                showNotification('⭐ Removed from starred items', 'info');
-                return;
-            }
-
-            items[id] = { meta: meta || {}, starredAt: new Date().toISOString() };
-            saveStarredItems(items);
-            document.querySelectorAll(`button.star-btn`).forEach(btn => {
-                if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(id)) {
-                    btn.classList.add('starred'); btn.textContent = '★ Starred';
-                }
-            });
-            showNotification('⭐ Added to starred items (local)', 'success');
-        }
-
-        // Sync local favorites to server when user logs in
-        async function syncLocalFavoritesToServer() {
-            if (!currentUser) return;
-            const items = getStarredItems();
-            const keys = Object.keys(items || {});
-            if (keys.length === 0) return;
-
-            try {
-                // Fetch existing server-side wishes to avoid duplicates
-                const listResp = await fetch('/api/user/wishes', { credentials: 'include' });
-                let serverWishes = [];
-                if (listResp.ok) {
-                    const data = await listResp.json();
-                    serverWishes = data.wishes || [];
-                }
-
-                for (const key of keys) {
-                    const local = items[key];
-                    // If already has serverId, skip
-                    if (local.serverId) continue;
-
-                    // Check dedupe by URL or title
-                    const meta = local.meta || {};
-                    const already = serverWishes.find(w => (w.eventUrl && meta.link && w.eventUrl === meta.link) || (w.eventTitle && meta.title && w.eventTitle === meta.title));
-                    if (already) {
-                        // store server id locally for future deletes
-                        items[key].serverId = already._id;
-                        saveStarredItems(items);
-                        continue;
-                    }
-
-                    // Create on server
-                    const wishBody = {
-                        eventTitle: meta.title || 'Starred item',
-                        eventDescription: meta.description || '',
-                        eventUrl: meta.link || '',
-                        eventDate: meta.eventDate || undefined,
-                        eventTime: meta.eventTime || undefined,
-                        eventLocation: meta.eventLocation || undefined,
-                        source: meta.source || 'prospector'
-                    };
-
-                    try {
-                        const createResp = await fetch('/api/user/wishes', {
-                            method: 'POST',
-                            credentials: 'include',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(wishBody)
-                        });
-
-                        if (!createResp.ok) {
-                            console.warn('Failed to create wish for', key, await createResp.text());
-                            continue;
-                        }
-
-                        const created = await createResp.json();
-                        items[key].serverId = created.wish._id;
-                        saveStarredItems(items);
-
-                        // Optionally add to Google Calendar if signed in
-                        if (isGoogleSignedIn && typeof gapi !== 'undefined' && gapi.client && gapi.client.calendar) {
-                            try {
-                                const title = meta.title || 'Starred item';
-                                const description = meta.description || '';
-                                const link = meta.link || '';
-                                const start = new Date(Date.now() + 60 * 60 * 1000);
-                                const end = new Date(start.getTime() + 60 * 60 * 1000);
-                                const event = {
-                                    summary: title,
-                                    description: description + (link ? `\n\nLink: ${link}` : ''),
-                                    start: { dateTime: start.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-                                    end: { dateTime: end.toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }
-                                };
-                                await gapi.client.calendar.events.insert({ calendarId: 'primary', resource: event });
-                            } catch (err) {
-                                console.warn('Calendar insert during sync failed:', err);
-                            }
-                        }
-
-                    } catch (err) {
-                        console.error('Error creating wish during sync for', key, err);
-                    }
-                }
-
-            } catch (err) {
-                console.error('Favorites sync failed:', err);
-                throw err;
-            }
         }
 
         // Display news search results
@@ -2871,49 +1876,23 @@
 
         function setSearchMode(mode) {
             currentSearchMode = mode;
-
-            // Update button states (guard in case buttons are missing)
-            const modeButtons = document.querySelectorAll('.mode-button');
-            if (modeButtons && modeButtons.length) {
-                modeButtons.forEach(btn => btn.classList.remove('active'));
-            }
-            const targetBtn = document.getElementById(mode + 'Mode');
-            if (targetBtn && targetBtn.classList) {
-                targetBtn.classList.add('active');
-            }
-
-            // Update mode indicator (guard)
+            
+            // Update button states
+            document.querySelectorAll('.mode-button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(mode + 'Mode').classList.add('active');
+            
+            // Update mode indicator
             const indicators = {
                 'auto': '🤖 Auto Mode: AI will analyze your query and choose the best search strategy',
                 'events': '📅 Events Mode: Focus on local events and activities',
                 'github': '💻 Code Mode: Search GitHub repositories and code-related content',
                 'reddit': '💬 Community Mode: Search Reddit posts and discussions',
                 'news': '📰 News Mode: Search for latest news and articles',
-                'social': '🌐 Social Mode: Search across all social platforms simultaneously',
-                'calendar': '📅 Calendar Mode: View and manage your Google Calendar events'
+                'social': '🌐 Social Mode: Search across all social platforms simultaneously'
             };
-
-            const modeIndicatorEl = document.getElementById('modeIndicator');
-            if (modeIndicatorEl) {
-                modeIndicatorEl.innerHTML = indicators[mode] || '';
-            }
-
-            // Show/hide calendar section based on mode (guard missing sections)
-            const calendarSection = document.getElementById('calendarSection');
-            const resultsSection = document.getElementById('resultsSection') || document.getElementById('mainResultsSection');
-
-            if (mode === 'calendar') {
-                if (calendarSection) calendarSection.style.display = 'block';
-                if (resultsSection) resultsSection.style.display = 'none';
-                // Initialize calendar if needed
-                if (typeof initializeGoogleApis === 'function') {
-                    initializeGoogleApis();
-                }
-            } else {
-                if (calendarSection) calendarSection.style.display = 'none';
-                if (resultsSection) resultsSection.style.display = 'block';
-            }
-
+            
+            document.getElementById('modeIndicator').innerHTML = indicators[mode];
+            
             // Update search button text
             const buttonTexts = {
                 'auto': '🚀 Smart Search',
@@ -2921,8 +1900,7 @@
                 'github': '💻 Search Code',
                 'reddit': '💬 Search Community',
                 'news': '📰 Find News',
-                'social': '🌐 Search All',
-                'calendar': '📅 View Calendar'
+                'social': '🌐 Search All'
             };
             
             document.getElementById('searchButton').innerHTML = buttonTexts[mode];
@@ -4287,24 +3265,6 @@
             }
         }
 
-        // Open Calendar Mode from sidebar
-        function openCalendarMode() {
-            // Require authentication to access calendar
-            if (!currentUser) {
-                showLoginForm();
-                return;
-            }
-
-            if (typeof setSearchMode === 'function') {
-                setSearchMode('calendar');
-            }
-            // Close sidebar for better view
-            const sidebarEl = document.getElementById('sidebar');
-            if (sidebarEl && sidebarEl.classList.contains('open')) {
-                sidebarEl.classList.remove('open');
-            }
-        }
-
         function updateStats() {
             const searchHistory = JSON.parse(localStorage.getItem('prospectorSearchHistory') || '[]');
             
@@ -4497,11 +3457,9 @@
                 });
                 
                 if (response.ok) {
-                            const data = await response.json();
-                            currentUser = data.user;
-                            updateUIForAuthenticatedUser();
-                            // Sync any locally-stored favorites to the server now that user is authenticated
-                            try { await syncLocalFavoritesToServer(); } catch(e) { console.warn('Favorites sync failed:', e); }
+                    const data = await response.json();
+                    currentUser = data.user;
+                    updateUIForAuthenticatedUser();
                 } else {
                     currentUser = null;
                     updateUIForGuestUser();
@@ -4525,26 +3483,12 @@
                 username: currentUser.username,
                 email: currentUser.email
             });
-            // Show calendar quick-action in sidebar for authenticated users
-            const openCalBtn = document.getElementById('openCalendarBtn');
-            if (openCalBtn) openCalBtn.style.display = 'block';
-            // Start loading Google APIs in the background so calendar operations are ready
-            try {
-                if (typeof initializeGoogleApis === 'function') {
-                    initializeGoogleApis().catch(err => console.warn('Google API init (background) failed:', err));
-                }
-            } catch (e) {
-                console.warn('Failed to kick off Google API initialization:', e);
-            }
         }
 
         // Update UI for guest user
         function updateUIForGuestUser() {
             document.getElementById('guestControls').style.display = 'flex';
             document.getElementById('userControls').style.display = 'none';
-            // Hide calendar quick-action for guests
-            const openCalBtn = document.getElementById('openCalendarBtn');
-            if (openCalBtn) openCalBtn.style.display = 'none';
         }
 
         // Show login form
@@ -4636,68 +3580,6 @@
                 }
             } catch (error) {
                 showNotification('❌ Login failed. Check your connection.', 'error');
-            }
-        }
-
-        // Handle Google Sign-In for login/register
-        async function handleGoogleSignIn(mode = 'login') {
-            try {
-                // Ensure Google APIs are initialized
-                if (typeof initializeGoogleApis === 'function') {
-                    await initializeGoogleApis();
-                }
-
-                if (typeof gapi === 'undefined' || !gapi.auth2) {
-                    showNotification('❌ Google APIs not available for sign-in.', 'error');
-                    return;
-                }
-
-                const authInstance = gapi.auth2.getAuthInstance();
-                const user = await authInstance.signIn();
-                const authResponse = user.getAuthResponse();
-                const idToken = authResponse.id_token;
-
-                if (!idToken) {
-                    showNotification('❌ Could not obtain Google ID token.', 'error');
-                    return;
-                }
-
-                // Send token to server
-                const result = await sendGoogleIdTokenToServer(idToken, mode);
-                if (result && result.user) {
-                    currentUser = result.user;
-                    updateUIForAuthenticatedUser();
-                    closeAuthModal();
-                    showNotification('🎉 Signed in with Google successfully!', 'success');
-                } else {
-                    showNotification('❌ Google sign-in failed on server.', 'error');
-                }
-
-            } catch (error) {
-                console.error('Google sign-in failed:', error);
-                showNotification('❌ Google sign-in failed. See console for details.', 'error');
-            }
-        }
-
-        async function sendGoogleIdTokenToServer(idToken, mode = 'login') {
-            try {
-                const response = await fetch('/api/auth/google', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ idToken, mode })
-                });
-
-                if (!response.ok) {
-                    const err = await response.json().catch(() => ({ error: 'Unknown error' }));
-                    console.error('Server rejected Google token:', err);
-                    return null;
-                }
-
-                return await response.json();
-            } catch (error) {
-                console.error('Failed to send Google ID token to server:', error);
-                return null;
             }
         }
 
@@ -4953,33 +3835,16 @@
                     'github': 'var(--cyber-green)',
                     'reddit': 'var(--cyber-orange)'
                 };
-
+                
                 const typeIcons = {
                     'event': '🎪',
                     'news': '📰',
                     'github': '💻',
                     'reddit': '💬'
                 };
-
-                // Create a stable id for this preview item
-                const resultId = result.url || result.id || result.title || ('preview-' + Math.floor(Math.random() * 1000000));
-                const isStarred = isItemStarred(resultId);
-                const evMeta = {
-                    title: result.title || 'Preview Item',
-                    description: result.description || '',
-                    link: result.url || '',
-                    eventDate: result.metadata?.date || undefined,
-                    eventLocation: result.metadata?.venue || undefined,
-                    source: result.source || 'prospector'
-                };
-
+                
                 return `
-                    <div class="preview-result-item" style="border-left-color: ${typeColors[result.type] || 'var(--cyber-green)'}; position: relative;">
-                        <div style="position: absolute; top: 10px; right: 12px;">
-                            <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="toggleStar('${escapeForJS(resultId)}', ${encodeURIComponent(JSON.stringify(evMeta))})" title="Star this item" style="padding:6px 8px; border-radius:6px; background: rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.05); color: var(--cyber-blue);">
-                                ${isStarred ? '★ Starred' : '☆ Star'}
-                            </button>
-                        </div>
+                    <div class="preview-result-item" style="border-left-color: ${typeColors[result.type] || 'var(--cyber-green)'};">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
                             <div style="flex: 1;">
                                 <h4 style="color: var(--cyber-blue); margin: 0 0 5px 0; font-size: 1rem;">${result.title}</h4>
@@ -5051,11 +3916,6 @@
         checkAuthStatus(); // Check if user is logged in
         loadSearchHistory();
         updateSearchStats();
-        
-        // Initialize particles and other UI elements when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('The Prospector loaded - Google Calendar API will initialize when accessed');
-        });
         
         // Add some sample history if none exists
         const existingHistory = getSearchHistory();

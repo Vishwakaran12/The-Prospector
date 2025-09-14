@@ -784,14 +784,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const incoming = req.headers;
       // Some servers may set multiple CSPs, capture what we're sending back by reading res.getHeaders if available
-      // We'll send back the incoming headers and a sample of server-side headers
-      const sampleServerHeaders: Record<string, any> = {
-        'Content-Security-Policy': res.getHeader('Content-Security-Policy') || null,
-        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin') || null,
-        'Set-Cookie': res.getHeader('Set-Cookie') || null
-      };
+  // We'll send back the incoming headers and the full set of response headers
+  const responseHeaders = typeof res.getHeaders === 'function' ? res.getHeaders() : {};
+  // Include any devCsp captured on res.locals for extra clarity
+  const devCsp = (res as any)?.locals?.devCsp || null;
 
-      res.json({ incoming, sampleServerHeaders });
+  res.json({ incoming, responseHeaders, devCsp });
     } catch (err) {
       console.error('Debug headers error:', err);
       res.status(500).json({ error: 'Failed to read headers' });

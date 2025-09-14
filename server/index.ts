@@ -19,13 +19,24 @@ app.use(express.urlencoded({ extended: false }));
 // This ensures the response header allows Google APIs and common third-party connections during local dev.
 app.use((req, res, next) => {
   if (process.env.NODE_ENV !== 'production') {
-    res.setHeader(
-      'Content-Security-Policy',
+    const devCsp =
       "default-src 'self' http: https: data: blob:; " +
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://content.googleapis.com https://api.github.com; " +
       "connect-src 'self' https://www.googleapis.com https://content.googleapis.com https://api.github.com https://api.github.com http: https:; " +
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:;"
-    );
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:;";
+
+    res.setHeader('Content-Security-Policy', devCsp);
+    // Log a short snippet of the CSP header so developers can verify it's applied
+    try {
+      // `log` is imported from ./vite and is the project's logger helper
+      log(`DEV-CSP applied for ${req.method} ${req.path}: ${String(devCsp).slice(0, 200)}`);
+    } catch (e) {
+      // fallback to console if log is unavailable
+      // eslint-disable-next-line no-console
+      console.log('DEV-CSP set for', req.method, req.path);
+    }
+    // also expose on res.locals for inspection by debug endpoints
+    try { (res as any).locals = (res as any).locals || {}; (res as any).locals.devCsp = devCsp; } catch (e) {}
   }
   next();
 });

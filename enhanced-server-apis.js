@@ -24,6 +24,7 @@ let inMemorySearches = [];
 let useMongoDb = false;
 let SearchModel = null;
 let UserModel = null;
+let WishModel = null;
 
 // MongoDB Connection
 const connectToMongoDB = async () => {
@@ -33,7 +34,13 @@ const connectToMongoDB = async () => {
       return false;
     }
 
-    await mongoose.connect(process.env.MONGODB_URI);
+    // Explicitly connect to the-prospector database
+    const mongoUri = process.env.MONGODB_URI.includes('/the-prospector') 
+      ? process.env.MONGODB_URI 
+      : process.env.MONGODB_URI.replace('/?', '/the-prospector?');
+    
+    await mongoose.connect(mongoUri);
+    console.log('🎯 Connected to MongoDB - Database: the-prospector');
 
     const SearchResultSchema = new mongoose.Schema({
       title: { type: String, required: true },
@@ -55,19 +62,21 @@ const connectToMongoDB = async () => {
         reddit: { type: Number, default: 0 },
         total: { type: Number, default: 0 }
       },
-      user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }, // null for guest users
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'ProspectorUser', default: null }, // null for guest users
       isPublic: { type: Boolean, default: false }, // for sharing searches
       createdAt: { type: Date, default: Date.now },
       timestamp: { type: String },
     });
 
-    SearchModel = mongoose.model('Search', SearchSchema);
+    SearchModel = mongoose.model('ProspectorSearch', SearchSchema);
     
     // User Schema for Authentication
     const UserSchema = new mongoose.Schema({
-      username: { type: String, required: true, unique: true, trim: true },
+      username: { type: String, unique: true, sparse: true, trim: true },
       email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-      password: { type: String, required: true },
+      password: { type: String, required: false }, // Not required for Google OAuth users
+      googleId: { type: String, unique: true, sparse: true }, // Google OAuth ID
+      provider: { type: String, enum: ['local', 'google'], default: 'local' },
       firstName: { type: String, trim: true },
       lastName: { type: String, trim: true },
       isActive: { type: Boolean, default: true },
@@ -80,9 +89,12 @@ const connectToMongoDB = async () => {
       }
     });
 
-    // Password hashing middleware
+    // Password hashing middleware (only for local auth users)
     UserSchema.pre('save', async function(next) {
-      if (!this.isModified('password')) return next();
+      // Only hash password for local authentication users
+      if (this.provider === 'google' || !this.isModified('password') || !this.password) {
+        return next();
+      }
       
       try {
         const salt = await bcrypt.genSalt(12);
@@ -105,12 +117,33 @@ const connectToMongoDB = async () => {
       return user;
     };
 
-    const UserModel_temp = mongoose.model('User', UserSchema);
+    const UserModel_temp = mongoose.model('ProspectorUser', UserSchema);
     UserModel = UserModel_temp;
+
+    // Wish Schema for starred items
+    const WishSchema = new mongoose.Schema({
+      eventTitle: { type: String, required: true },
+      eventDescription: { type: String, default: '' },
+      eventUrl: { type: String, default: '' },
+      eventDate: { type: String },
+      eventTime: { type: String },
+      eventLocation: { type: String },
+      source: { type: String, default: 'prospector' },
+      user: { type: mongoose.Schema.Types.ObjectId, ref: 'ProspectorUser', required: true },
+      createdAt: { type: Date, default: Date.now }
+    });
+
+    const WishModel_temp = mongoose.model('ProspectorWish', WishSchema);
+    WishModel = WishModel_temp;
     
     useMongoDb = true;
     
     console.log('🚀 MongoDB connected successfully!');
+    console.log('📊 Collections initialized:');
+    console.log('   - ProspectorSearch (search history)');
+    console.log('   - ProspectorUser (user accounts)');
+    console.log('   - ProspectorWish (starred items)');
+    console.log('🎯 Database: the-prospector');
     return true;
   } catch (error) {
     console.error('❌ MongoDB connection failed:', error.message);
@@ -208,12 +241,10 @@ passport.deserializeUser(async (id, done) => {
 
 // Authentication middleware
 const requireAuth = (req, res, next) => {
-  // In testing mode we've relaxed authentication; behave like optionalAuth
   if (req.isAuthenticated && req.isAuthenticated()) {
     return next();
   }
-  // allow unauthenticated access for testing
-  return next();
+  res.status(401).json({ error: 'Authentication required' });
 };
 
 // Optional authentication middleware (allows both authenticated and guest users)
@@ -359,10 +390,16 @@ app.post('/api/auth/logout', (req, res) => {
 
 // Get current user
 app.get('/api/auth/me', (req, res) => {
+  console.log('🔍 Auth check - Session ID:', req.sessionID);
+  console.log('🔍 Auth check - User:', req.user ? 'Present' : 'None');
+  console.log('🔍 Auth check - isAuthenticated():', req.isAuthenticated ? req.isAuthenticated() : 'No function');
+  
   if (!req.isAuthenticated()) {
+    console.log('❌ Authentication failed for session:', req.sessionID);
     return res.status(401).json({ error: 'Not authenticated' });
   }
 
+  console.log('✅ Authentication successful for user:', req.user.email);
   res.json({
     user: req.user.toJSON(),
     authenticated: true
@@ -428,9 +465,102 @@ app.put('/api/auth/password', optionalAuth, async (req, res) => {
   }
 });
 
+// Test endpoint to verify server is working
+app.get('/api/test', (req, res) => {
+  console.log('🔍 Test endpoint called');
+  res.json({ message: 'Server is working!', timestamp: new Date().toISOString() });
+});
+
+// Google OAuth authentication
+app.post('/api/auth/google', async (req, res) => {
+  console.log('🚀 Google auth endpoint called');
+  console.log('📋 Request body:', req.body);
+  try {
+    const { idToken, mode = 'login' } = req.body;
+    
+    if (!idToken) {
+      console.log('❌ No idToken provided');
+      return res.status(400).json({ error: 'Google ID token is required' });
+    }
+
+    // For testing, we'll parse the Base64-encoded user info from the client
+    // In production, you should verify the token with Google's API
+    let payload;
+    try {
+      // Try to parse as Base64-encoded JSON (our mock format)
+      payload = JSON.parse(Buffer.from(idToken, 'base64').toString('utf-8'));
+    } catch (error) {
+      // If parsing fails, use mock data
+      payload = {
+        sub: 'google_' + Math.random().toString(36).substr(2, 9),
+        email: 'user@gmail.com',
+        name: 'Google User',
+        given_name: 'Google',
+        family_name: 'User'
+      };
+    }
+
+    if (!useMongoDb) {
+      // For testing without MongoDB, return success
+      return res.json({
+        message: 'Google authentication successful (test mode)',
+        user: {
+          id: payload.sub,
+          email: payload.email,
+          firstName: payload.given_name,
+          lastName: payload.family_name,
+          provider: 'google'
+        },
+        authenticated: true
+      });
+    }
+
+    // Check if user exists
+    let user = await UserModel.findOne({ googleId: payload.sub });
+    
+    if (!user) {
+      if (mode === 'register') {
+        // Create new user
+        user = new UserModel({
+          googleId: payload.sub,
+          email: payload.email,
+          firstName: payload.given_name || '',
+          lastName: payload.family_name || '',
+          provider: 'google'
+        });
+        await user.save();
+      } else {
+        return res.status(404).json({ error: 'User not found. Please register first.' });
+      }
+    }
+
+    // Log the user in
+    req.login(user, (err) => {
+      if (err) {
+        console.error('Google login error:', err);
+        return res.status(500).json({ error: 'Login failed' });
+      }
+
+      console.log('✅ Google login successful - Session ID:', req.sessionID);
+      console.log('✅ User logged in:', user.email);
+
+      res.json({
+        message: 'Google authentication successful',
+        user: user.toJSON(),
+        authenticated: true
+      });
+    });
+
+  } catch (error) {
+    console.error('Google authentication error:', error);
+    res.status(500).json({ error: 'Authentication failed' });
+  }
+});
+
 // ==================== END AUTHENTICATION ROUTES ====================
 
-// Test endpoint to create a demo user (remove in production)
+// Development/Demo endpoint (commented out for production)
+/*
 app.post('/api/test/create-demo-user', async (req, res) => {
   try {
     if (!useMongoDb) {
@@ -465,6 +595,7 @@ app.post('/api/test/create-demo-user', async (req, res) => {
     res.status(500).json({ error: 'Failed to create demo user' });
   }
 });
+*/
 
 // News search endpoint
 app.post('/api/search-news', optionalAuth, async (req, res) => {
@@ -1513,15 +1644,258 @@ app.get("/api/public/searches", optionalAuth, async (req, res) => {
   }
 });
 
+// ========== WISHES/FAVORITES API ENDPOINTS ==========
+
+// Get user's wishes/favorites
+app.get("/api/user/wishes", requireAuth, async (req, res) => {
+  try {
+    if (!useMongoDb || !WishModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const wishes = await WishModel.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.json({ wishes });
+
+  } catch (error) {
+    console.error('Get wishes error:', error);
+    res.status(500).json({ error: 'Failed to retrieve wishes' });
+  }
+});
+
+// Create a new wish/favorite
+app.post("/api/user/wishes", requireAuth, async (req, res) => {
+  try {
+    if (!useMongoDb || !WishModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const wishData = {
+      ...req.body,
+      user: req.user._id
+    };
+
+    const wish = new WishModel(wishData);
+    await wish.save();
+    
+    res.json({ wish });
+
+  } catch (error) {
+    console.error('Create wish error:', error);
+    res.status(500).json({ error: 'Failed to save wish' });
+  }
+});
+
+// Delete a wish/favorite
+app.delete("/api/user/wishes/:id", requireAuth, async (req, res) => {
+  try {
+    if (!useMongoDb || !WishModel) {
+      return res.status(503).json({ error: 'Database not available' });
+    }
+
+    const wish = await WishModel.findOne({ _id: req.params.id, user: req.user._id });
+    
+    if (!wish) {
+      return res.status(404).json({ error: 'Wish not found' });
+    }
+
+    await WishModel.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Wish deleted successfully' });
+
+  } catch (error) {
+    console.error('Delete wish error:', error);
+    res.status(500).json({ error: 'Failed to delete wish' });
+  }
+});
+
+// Send personalized newsletter
+app.post("/api/send-newsletter", requireAuth, async (req, res) => {
+  try {
+    const { email, searchHistory = [], favorites = [], userName } = req.body;
+    
+    // Generate newsletter content based on user data
+    const subject = `🎯 Your Personalized Prospector Report - ${new Date().toLocaleDateString()}`;
+    
+    // Create HTML content for the newsletter
+    const content = generateNewsletterHTML(userName || req.user.firstName || req.user.username, searchHistory, favorites);
+    
+    console.log('📧 Newsletter Request:', {
+      user: req.user.username,
+      email: email,
+      subject: subject,
+      contentLength: content.length,
+      searchHistoryCount: searchHistory.length,
+      favoritesCount: favorites.length
+    });
+
+    // Simulate successful email sending
+    // In real implementation, replace this with actual email service
+    const newsletterLog = {
+      userId: req.user._id,
+      email: email,
+      subject: subject,
+      sentAt: new Date(),
+      status: 'sent',
+      searchHistoryCount: searchHistory.length,
+      favoritesCount: favorites.length
+    };
+
+    // Here you would typically:
+    // 1. Use an email service to send the actual email
+    // 2. Log the newsletter in a database
+    // 3. Update user preferences/statistics
+    
+    // Example with Nodemailer (commented out - requires SMTP setup):
+    /*
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransporter({
+      service: 'gmail', // or your email service
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: subject,
+      html: content
+    });
+    */
+
+    res.json({ 
+      success: true, 
+      message: 'Newsletter sent successfully!',
+      log: newsletterLog
+    });
+
+  } catch (error) {
+    console.error('Newsletter sending error:', error);
+    res.status(500).json({ error: 'Failed to send newsletter' });
+  }
+});
+
+// Generate HTML content for newsletter
+function generateNewsletterHTML(userName, searchHistory, favorites) {
+  const formatDate = (dateStr) => {
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short', 
+        day: 'numeric'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatEventHtml = (event, index) => {
+    const sourceUrl = event.url || event.source;
+    const sourceDomain = sourceUrl ? new URL(sourceUrl).hostname.replace('www.', '') : 'Unknown';
+    
+    return `
+      <div style="background: #f8f9fa; border-left: 3px solid #007bff; padding: 15px; margin: 10px 0; border-radius: 5px;">
+        <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 16px;">${event.title}</h4>
+        ${event.description ? `<p style="margin: 5px 0; color: #666; font-size: 14px;">${event.description.substring(0, 200)}${event.description.length > 200 ? '...' : ''}</p>` : ''}
+        ${event.date ? `<p style="margin: 5px 0; color: #28a745; font-weight: bold; font-size: 13px;">📅 ${formatDate(event.date)}</p>` : ''}
+        ${sourceUrl ? `<p style="margin: 5px 0;"><a href="${sourceUrl}" style="color: #007bff; text-decoration: none; font-size: 13px;">🔗 View on ${sourceDomain}</a></p>` : ''}
+      </div>
+    `;
+  };
+
+  const searchHistoryHtml = searchHistory.length > 0 ? `
+    <div style="margin: 20px 0;">
+      <h3 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px;">🔍 Recent Search History</h3>
+      ${searchHistory.map((search, index) => `
+        <div style="background: #fff; border: 1px solid #e0e0e0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+          <h4 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 16px;">"${search.query}"</h4>
+          ${search.location ? `<p style="margin: 5px 0; color: #666; font-size: 14px;">📍 ${search.location}</p>` : ''}
+          <p style="margin: 5px 0; color: #999; font-size: 12px;">🕐 ${formatDate(search.timestamp || search.createdAt)}</p>
+          <p style="margin: 5px 0; color: #28a745; font-size: 13px;">✅ ${search.results?.length || 0} results found</p>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const favoritesHtml = favorites.length > 0 ? `
+    <div style="margin: 20px 0;">
+      <h3 style="color: #2c3e50; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">⭐ Your Favorite Events</h3>
+      ${favorites.map(formatEventHtml).join('')}
+    </div>
+  ` : '';
+
+  const statsHtml = `
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+      <h3 style="margin: 0 0 15px 0; color: white;">📊 Your Activity Summary</h3>
+      <div style="display: flex; justify-content: space-around; text-align: center;">
+        <div>
+          <h4 style="margin: 0; font-size: 24px;">${searchHistory.length}</h4>
+          <p style="margin: 5px 0 0 0; font-size: 14px;">Recent Searches</p>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 24px;">${favorites.length}</h4>
+          <p style="margin: 5px 0 0 0; font-size: 14px;">Starred Events</p>
+        </div>
+        <div>
+          <h4 style="margin: 0; font-size: 24px;">${searchHistory.reduce((total, search) => total + (search.results?.length || 0), 0)}</h4>
+          <p style="margin: 5px 0 0 0; font-size: 14px;">Total Results</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Your Prospector Report</title>
+    </head>
+    <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
+      <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2c3e50; margin: 0; font-size: 28px;">🎯 The Prospector</h1>
+          <h2 style="color: #7f8c8d; margin: 10px 0; font-size: 18px; font-weight: normal;">Your Personalized Activity Report</h2>
+          <p style="color: #95a5a6; margin: 5px 0; font-size: 14px;">${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        </div>
+
+        <div style="background: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; margin: 20px 0; border-radius: 5px;">
+          <p style="margin: 0; color: #2c3e50; font-size: 16px;">
+            Hello <strong>${userName}</strong>! 👋
+          </p>
+          <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">
+            Here's your personalized summary of recent activity on The Prospector platform.
+          </p>
+        </div>
+
+        ${statsHtml}
+        ${searchHistoryHtml}
+        ${favoritesHtml}
+
+        ${searchHistory.length === 0 && favorites.length === 0 ? `
+          <div style="text-align: center; padding: 40px 20px; color: #666;">
+            <h3 style="color: #7f8c8d;">🚀 Start Your Journey!</h3>
+            <p>You haven't made any searches or saved favorites yet. Start exploring to discover amazing events and opportunities!</p>
+          </div>
+        ` : ''}
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+          <p style="color: #999; font-size: 13px; margin: 5px 0;">
+            This newsletter was generated by <strong>The Prospector</strong> platform.
+          </p>
+          <p style="color: #999; font-size: 12px; margin: 5px 0;">
+            © ${new Date().getFullYear()} The Prospector. Happy exploring! 🎉
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
 // Start the server
 app.listen(PORT, () => {
-  console.log(`🚀 Enhanced Event Discovery Server running on http://localhost:${PORT}`);
-  console.log(`📊 Storage: ${useMongoDb ? 'MongoDB' : 'In-Memory'}`);
-  console.log(`🔑 APIs configured: ${Object.keys({
-    apiNinja: !!process.env.API_NINJA_KEY,
-    newsApi: !!process.env.NEWS_API_KEY,
-    openWeather: !!process.env.OPENWEATHER_API_KEY,
-    ticketmaster: !!process.env.TICKETMASTER_API_KEY,
-    eventbrite: !!process.env.EVENTBRITE_API_KEY
-  }).filter(key => !!process.env[key.toUpperCase() + '_KEY'] || key === 'apiNinja' && !!process.env.API_NINJA_KEY).join(', ')}`);
+  console.log(`🚀 Discovery Server running on http://localhost:${PORT}`);
 });

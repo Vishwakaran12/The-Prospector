@@ -779,6 +779,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Debug endpoint to inspect request headers and server-generated headers
+  app.get('/api/debug/headers', (req, res) => {
+    try {
+      const incoming = req.headers;
+      // Some servers may set multiple CSPs, capture what we're sending back by reading res.getHeaders if available
+      // We'll send back the incoming headers and a sample of server-side headers
+      const sampleServerHeaders: Record<string, any> = {
+        'Content-Security-Policy': res.getHeader('Content-Security-Policy') || null,
+        'Access-Control-Allow-Origin': res.getHeader('Access-Control-Allow-Origin') || null,
+        'Set-Cookie': res.getHeader('Set-Cookie') || null
+      };
+
+      res.json({ incoming, sampleServerHeaders });
+    } catch (err) {
+      console.error('Debug headers error:', err);
+      res.status(500).json({ error: 'Failed to read headers' });
+    }
+  });
+
+  // Dev-only GitHub proxy to avoid CSP/CORS issues when calling GitHub from the browser in development
+  app.get('/api/proxy/github/search', async (req, res) => {
+    try {
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(403).json({ error: 'Proxy disabled in production' });
+      }
+
+      const q = req.query.q as string || '';
+      const per_page = parseInt(req.query.per_page as string) || 20;
+      const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&per_page=${per_page}`;
+
+      const fetchResp = await fetch(url, { headers: { 'User-Agent': 'The-Prospector-App' } });
+      const text = await fetchResp.text();
+      res.status(fetchResp.status).send(text);
+    } catch (err) {
+      console.error('GitHub proxy error:', err);
+      res.status(500).json({ error: 'GitHub proxy failed' });
+    }
+  });
+
   // User Personalization Routes
   
   // POST /api/users/:userId/chats - Create a new chat

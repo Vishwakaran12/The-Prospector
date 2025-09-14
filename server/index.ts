@@ -15,6 +15,21 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Development-only Content Security Policy header to align browser behavior with expected dev meta
+// This ensures the response header allows Google APIs and common third-party connections during local dev.
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== 'production') {
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self' http: https: data: blob:; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://content.googleapis.com https://api.github.com; " +
+      "connect-src 'self' https://www.googleapis.com https://content.googleapis.com https://api.github.com https://api.github.com http: https:; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:;"
+    );
+  }
+  next();
+});
+
 // Session and authentication setup
 app.use(sessionConfig);
 app.use(passport.initialize());

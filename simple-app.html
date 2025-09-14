@@ -1402,44 +1402,46 @@
 
         // Enhanced GitHub API with robust error handling and retry logic
         async function searchGitHub(query, retries = 3) {
+            // Use a local proxy in development to avoid CSP/CORS issues
+            const useProxy = window.location && window.location.hostname === 'localhost';
+            const endpoint = useProxy ? `/api/proxy/github/search?q=${encodeURIComponent(query)}&per_page=20` : `${API_CONFIG.github.baseUrl}/search/repositories?q=${encodeURIComponent(query)}&sort=stars&per_page=20`;
+
             for (let attempt = 0; attempt < retries; attempt++) {
                 try {
-                    const response = await fetch(`${API_CONFIG.github.baseUrl}/search/repositories?q=${encodeURIComponent(query)}&sort=stars&per_page=20`, {
-                        headers: {
-                            'Authorization': `token ${API_CONFIG.github.token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'User-Agent': 'The-Prospector-App',
-                            'X-GitHub-Api-Version': '2022-11-28'
-                        }
-                    });
-                    
+                    const headers = useProxy ? { 'Accept': 'application/vnd.github.v3+json' } : {
+                        'Authorization': `token ${API_CONFIG.github.token}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'User-Agent': 'The-Prospector-App',
+                        'X-GitHub-Api-Version': '2022-11-28'
+                    };
+
+                    const response = await fetch(endpoint, { headers });
+
                     if (response.status === 403) {
-                        // Rate limit hit, wait and retry
                         const resetTime = response.headers.get('X-RateLimit-Reset');
                         if (resetTime) {
                             const waitTime = (parseInt(resetTime) * 1000) - Date.now();
-                            if (waitTime > 0 && waitTime < 60000) { // Wait max 1 minute
+                            if (waitTime > 0 && waitTime < 60000) {
                                 console.log(`Rate limited, waiting ${waitTime}ms`);
                                 await new Promise(resolve => setTimeout(resolve, waitTime));
                                 continue;
                             }
                         }
                     }
-                    
+
                     if (!response.ok) {
                         throw new Error(`GitHub API Error: ${response.status} - ${response.statusText}`);
                     }
-                    
+
                     const data = await response.json();
                     console.log('GitHub API success:', data.total_count, 'repositories found');
                     return data;
-                    
+
                 } catch (error) {
                     console.error(`GitHub attempt ${attempt + 1} failed:`, error);
                     if (attempt === retries - 1) {
                         throw error;
                     }
-                    // Wait before retry
                     await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
                 }
             }
